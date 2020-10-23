@@ -1,11 +1,11 @@
-<mxfile host="app.diagrams.net" modified="2020-10-23T21:53:36.725Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" etag="EDDgf49qWKiqVawpGSga" version="13.8.1" type="github">
+<mxfile host="app.diagrams.net" modified="2020-10-23T22:00:05.407Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36" etag="HPSCaQWIpxiUUpPlTKbV" version="13.8.1" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="1221" dy="645" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="865" dy="457" grid="1" gridSize="1" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="arrxK9u_b5UNdcoeQI_R-118" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="37" y="43" width="966" height="552" as="geometry" />
+          <mxGeometry x="40" y="43" width="966" height="561" as="geometry" />
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-125" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="616.5" y="79" width="353.5" height="933" as="geometry" />
@@ -17,7 +17,7 @@
           <mxGeometry x="242" y="77" width="174" height="485" as="geometry" />
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-122" value="" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="59" y="82" width="174" height="442" as="geometry" />
+          <mxGeometry x="59" y="82" width="174" height="510" as="geometry" />
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="WIyWlLk6GJQsqaUBKTNV-6" target="arrxK9u_b5UNdcoeQI_R-12">
           <mxGeometry relative="1" as="geometry" />
@@ -25,11 +25,12 @@
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-6" value="True" style="rhombus;whiteSpace=wrap;html=1;shadow=0;fontFamily=Helvetica;fontSize=12;align=center;strokeWidth=1;spacing=6;spacingTop=-4;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="76.5" y="213" width="100" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="arrxK9u_b5UNdcoeQI_R-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.93;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="arrxK9u_b5UNdcoeQI_R-55">
+        <mxCell id="arrxK9u_b5UNdcoeQI_R-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.939;exitY=0.575;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="arrxK9u_b5UNdcoeQI_R-129">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="126" y="198" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="215" y="478" />
+              <mxPoint x="175" y="550" />
+              <mxPoint x="215" y="550" />
               <mxPoint x="215" y="198" />
             </Array>
           </mxGeometry>
@@ -146,7 +147,7 @@
         <mxCell id="arrxK9u_b5UNdcoeQI_R-81" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="arrxK9u_b5UNdcoeQI_R-47" target="arrxK9u_b5UNdcoeQI_R-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arrxK9u_b5UNdcoeQI_R-47" value="Read list of coordinates" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+        <mxCell id="arrxK9u_b5UNdcoeQI_R-47" value="Read 2D coordinates matrix" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="441.5" y="310" width="131" height="57" as="geometry" />
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-89" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="arrxK9u_b5UNdcoeQI_R-53" target="arrxK9u_b5UNdcoeQI_R-61">
@@ -154,6 +155,9 @@
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-53" value="Dequeue social distance breach event (unblocked)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="636" y="308" width="131" height="57" as="geometry" />
+        </mxCell>
+        <mxCell id="arrxK9u_b5UNdcoeQI_R-130" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="arrxK9u_b5UNdcoeQI_R-55" target="arrxK9u_b5UNdcoeQI_R-129">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-55" value="&lt;span&gt;List of coordinates&lt;/span&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="76.5" y="448" width="100" height="60" as="geometry" />
@@ -298,6 +302,9 @@
         </mxCell>
         <mxCell id="arrxK9u_b5UNdcoeQI_R-128" value="&lt;span&gt;Record breach&lt;/span&gt;" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
           <mxGeometry x="650.25" y="502" width="110.5" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="arrxK9u_b5UNdcoeQI_R-129" value="2D matrix, element value corresponds to coordinate state (empty, occupied)" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="71.25" y="519" width="110.5" height="67" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
