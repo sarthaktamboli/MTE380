@@ -1,10 +1,10 @@
 from util import *
-from threading import Thread
+from multiprocessing import Process, Queue
 
-class MainController(Thread):
+class MainController(Process):
 	def __init__(self, intersections: List["Intersection"]):
 
-		Thread.__init__(self)
+		Process.__init__(self)
 		self.intersections = intersections
 
 		logger = logging.getLogger('main_controller_logger')
