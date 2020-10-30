@@ -1,6 +1,7 @@
 from typing import List, Tuple, Set, Optional
 from queue import Queue
 from collections import namedtuple
+import numpy as np
 
 Coord = namedtuple('Coord', ['x', 'y'])
 
@@ -47,7 +48,7 @@ class LocalController():
 	def has_LEDs(self, LEDs: List["LED"]) -> bool:
 		return all([self.has_LED(LED) for LED in LEDs])
 
-	def power_LED(self, LED: LED, power_on: bool):
+	def power_LED(self, LED: LED, power_state: bool):
 		if self.has_LED(LED):
 			if power_state:
 				LED.power_on()
@@ -86,9 +87,9 @@ class Intersection():
 	def contains_coord(self, coord: Coord) -> bool:
 		return coord in self.coords
 
-	def is_occupied(self, grid: List[List[int]]) -> bool:
+	def is_occupied(self, grid: np.ndarray) -> bool:
 		for coord in self.coords:
-			if grid[coord[0]][coord[1]]:
+			if grid[coord.x, coord.y]:
 				return True
 
 		return False
