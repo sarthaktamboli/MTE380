@@ -30,12 +30,14 @@ class LED():
 		self.is_on = False
 
 	def power_on():
-		time.sleep(0.0001)
-		self.is_on = True
+		if not self.is_on:
+			time.sleep(0.0001)
+			self.is_on = True
 
 	def power_off():
-		time.sleep(0.0001)
-		self.is_on = False
+		if self.is_on:
+			time.sleep(0.0001)
+			self.is_on = False
 
 
 class LocalController():
@@ -49,15 +51,17 @@ class LocalController():
 		return all([self.has_LED(LED) for LED in LEDs])
 
 	def power_LED(self, LED: LED, power_state: bool):
-		if self.has_LED(LED):
-			if power_state:
-				LED.power_on()
-			else:
-				LED.power_off()
+		if not self.has_LED(LED):
+			raise ValueError("Local controller can only control local LEDs")
+
+		if power_state:
+			LED.power_on()
+		else:
+			LED.power_off()
 
 	def power_LEDs(self, LEDs: List["LED"], power_states: List[bool]):
 		if len(power_states) != len(LEDs):
-			raise ValueError("LED coordinates and power states must be equal length")
+			raise ValueError("LEDs and power states must be equal length")
 
 		for i, LED in enumerate(LEDs):
 			self.power_LED(LED, power_states[i])
