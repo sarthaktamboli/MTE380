@@ -2,12 +2,11 @@ from util import *
 from multiprocessing import Process, Queue
 
 class MainController(Process):
-	def __init__(self, intersections: List["Intersection"], cameraData: Queue, LEDsData: Queue):
-
+	def __init__(self, intersections: List["Intersection"], cameraData: Queue, mainControllerData: Queue):
 		Process.__init__(self)
-		self.intersections = intersections
+		self.intersections = intersections.copy()
 		self.cameraData = cameraData
-		self.LEDsData = LEDsData
+		self.mainControllerData = mainControllerData
 
 		logger = logging.getLogger('main_controller_logger')
 		logger.setLevel(logging.DEBUG)
@@ -37,7 +36,7 @@ class MainController(Process):
 
 				# Enqueue people waiting at entry lane intersections to get into the intersection if not already in queue
 				for entryLaneIntersection in intersection.entry_lane_intersections:
-					if floormap[entryLaneIntersection.coord.x, entryLaneIntersection.coord.y]:
+					if floormap[entryLaneIntersection.coord.x, entryLaneIntersection.coord.y] == 1:
 						if entryLaneIntersection not in intersection.queue.queue:
 							intersection.queue.put(entryLaneIntersection)
  
@@ -49,7 +48,7 @@ class MainController(Process):
 
 					# Turn on all LEDs of exit lane intersections that are blocked, turn off otherwise
 					for exitLaneIntersection in intersection.exit_lane_intersections:
-						powerState = floormap[exitLaneIntersection.coord.x, exitLaneIntersection.coord.y]
+						powerState = floormap[exitLaneIntersection.coord.x, exitLaneIntersection.coord.y] == 1
 						controllersLEDs[intersection.local_controller].append((exitLaneIntersection.LED, powerState))
 				else:
 					# Turn on all LEDs of exit lane intersections to prevent entry
@@ -80,8 +79,8 @@ class MainController(Process):
 				# Add list of local LEDs to list of all LEDs after their states have been updated
 				LEDs += localLEDs
 
-			# Enqueue list of all LEDs
-			LEDsData.put(LEDs)
+			# Enqueue mainControllerData, which consists of the new LEDs
+			mainControllerData.put(LEDs)
 
 
 

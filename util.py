@@ -5,6 +5,35 @@ import numpy as np
 
 Coord = namedtuple('Coord', ['x', 'y'])
 
+class Location():
+	def__init__(self, locID: int):
+		self.locID = locID
+		self.coord = getCoord()
+
+	def getCoord(self) -> "Coord":
+		# TODO: hardcode
+
+class Person():
+	def __init__(self, srcLoc: Location, dstLoc: Location):
+		if srcLoc == dstLoc:
+			raise ValueError("Source and destination must be different")
+		self.srcLoc = srcLoc
+		self.dstLoc = dstLoc
+		self.coord = srcLoc.coord
+		self.path = getPath()
+		self.pathIdx = 0
+
+	def getPath(self) -> List["Coord"]:
+		# TODO: hardcode
+
+	def nextCoord(self) -> Coord:
+		return self.path[self.pathIdx + 1]
+
+	def advance(self):
+		self.coord = self.nextCoord()
+		self.pathIdx += 1
+
+
 class Lane():
 	LABELS = {"1in", "1out", "2in", "2out", "3in", "3out", "4in", "4out", "5in", "5out", "6in", "6out", "7in", "innerRing", "outerRing"}
 	
@@ -25,8 +54,13 @@ class Lane():
 
 
 class LED():
-	def __init__(self, coord: Coord):
-		self.coord = coord
+	def __init__(self, coordBounds: Tuple[Coord]):
+		if len(coordBounds) != 2:
+			raise ValueError("LED must be bounded by only two coordinates")
+		if abs(coordBounds[0].x - coordBounds[1].x) + abs(coordBounds[0].y - coordBounds[1].y) != 1:
+			raise ValueError("LED must be bounded by two coordinates that are next to each other")
+
+		self.coordBounds = coordBounds
 		self.is_on = False
 
 	def power_on():
@@ -38,6 +72,9 @@ class LED():
 		if self.is_on:
 			time.sleep(0.0001)
 			self.is_on = False
+
+	def is_vertical() -> bool:
+		return abs(coordBounds[0].y - coordBounds[1].y) == 1
 
 
 class LocalController():
@@ -93,7 +130,7 @@ class Intersection():
 
 	def is_occupied(self, grid: np.ndarray) -> bool:
 		for coord in self.coords:
-			if grid[coord.x, coord.y]:
+			if grid[coord.x, coord.y] == 1:
 				return True
 
 		return False
