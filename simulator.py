@@ -2,6 +2,7 @@ from typing import List
 from util import *
 from multiprocessing import Process, Queue
 import numpy as np
+import random
 import pygame
 
 class Simulator(Process):
@@ -15,17 +16,13 @@ class Simulator(Process):
 		# Initialize pygame
 		pygame.init()
 
-		# Set the dimensions of the screen
-		screenSize = [1023, 1023]
-		self.screen = pygame.display.set_mode(screenSize)
-
 		# Define colors
 		self.black = (0x00, 0x00, 0x00)
 		self.white = (0xFF, 0xFF, 0xFF)
-		self.grey = (0x33, 0x33, 0x33)
-		self.red = (0xFF, 0x00, 0x00)
+		self.grey  = (0x33, 0x33, 0x33)
+		self.red   = (0xFF, 0x00, 0x00)
 		self.green = (0x00, 0xFF, 0x00)
-		self.blue = (0x00, 0x00, 0xFF)
+		self.blue  = (0x00, 0x00, 0xFF)
 
 		# Define block dimensions and margins
 		self.blockWidth = 20
@@ -35,25 +32,30 @@ class Simulator(Process):
 		# Define point dimensions
 		self.pointRadius = 5
 
+		# Set the dimensions of the screen
+		screenWidth = (self.blockMargin + self.blockWidth) * self.emptyFloormap.shape[0] + self.blockMargin
+		screenHeight = (self.blockMargin + self.blockHeight) * self.emptyFloormap.shape[1] + self.blockMargin
+		self.screen = pygame.display.set_mode([screenWidth, screenHeight])
+
 	def getPygameCoords(self, x: int, y: int) -> "Coord":
 		return Coord((self.blockMargin + self.blockWidth) * x + self.blockMargin + (self.blockWidth / 2),
 			    	 (self.blockMargin + self.blockHeight) * y + self.blockMargin + (self.blockHeight / 2))
 
 	def drawBlock(self, color: Tuple[int], x: int, y: int):
-		pygameCoords = getPygameCoords(x, y)
-		blockLocation = (pygameCoords.x - (self.blockWidth / 2)
+		pygameCoords = self.getPygameCoords(x, y)
+		blockLocation = (pygameCoords.x - (self.blockWidth / 2),
     					 pygameCoords.y - (self.blockHeight / 2),
     					 self.blockWidth,
     					 self.blockHeight)
 		pygame.draw.rect(self.screen, color, blockLocation)
 
 	def drawPerson(self, color: Tuple[int], x: int, y: int):
-		personLocation = getPygameCoords(x, y)
+		personLocation = self.getPygameCoords(x, y)
 		pygame.draw.circle(self.screen, color, personLocation, self.pointRadius)
 
 	def drawLED(self, color: Tuple[int], coordBounds: Tuple["Coords"], is_vertical: bool):
-		pygameCoords1 = getPygameCoords(coordBounds[0])
-		pygameCoords2 = getPygameCoords(coordBounds[1])
+		pygameCoords1 = self.getPygameCoords(coordBounds[0])
+		pygameCoords2 = self.getPygameCoords(coordBounds[1])
 		midpoint = Coord((pygameCoords1.x + pygameCoords2.x) / 2, (pygameCoords1.y + pygameCoords2.y) / 2)
 		LEDLocation = [(midpoint.x, midpoint.y - (self.blockHeight / 2)), (midpoint.x, midpoint.y + (self.blockHeight / 2))] if is_vertical else \
 					  [(midpoint.x - (self.blockWidth / 2), midpoint.y), (midpoint.x + (self.blockWidth / 2), midpoint.y)]
@@ -62,7 +64,7 @@ class Simulator(Process):
 
 	def run(self):
 		while True:
-			# TODO: Enqueue simulator data (list of coordinates)
+			# Enqueue simulator data (list of coordinates)
 			self.simulatorData.put([person.coord for person in self.people])
 
 			# Get LEDs from main controller data
@@ -72,7 +74,7 @@ class Simulator(Process):
     		self.screen.fill(self.black)
 
     		# Draw the empty floormap
-    		for x, y in np.ndindex(self.emptyFloormap):
+			for x, y in np.ndindex(self.emptyFloormap.shape):
     			color = self.grey if self.emptyFloormap[x, y] == -1 else self.white
     			self.drawBlock(color, x, y)
 
@@ -102,15 +104,20 @@ class Simulator(Process):
 				if currCoord == person.dstLoc.coord:
 					self.people.remove(person)
 				elif (currCoord, nextCoord) not in blockedPaths and (nextCoord, currCoord) not in blockedPaths:
-					# 80% chance to advance if possible
-    				if np.random.rand() < 0.8:
-    					person.advance()
+					if not any([person.coord == nextCoord for person in self.people]):
+						# 80% chance to advance if possible
+						if np.random.rand() < 0.8:
+							person.advance()
 
+			# TODO: only do this if there is less than a certain number of people?
     		# 20% chance to add a new person
     		if np.random.rand() < 0.2:
-    			# TODO: Generate random srcLoc and dstLoc
+				# TODO: Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
     			newPerson = Person(srcLoc, dstLoc)
     			self.people.append(newPerson)
+
+			# Shuffle list of people to change order of iteration
+			random.shuffle(people)
  
 		# Exit pygame
 		pygame.quit()

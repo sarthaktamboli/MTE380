@@ -80,7 +80,4 @@ class MainController(Process):
 				LEDs += localLEDs
 
 			# Enqueue mainControllerData, which consists of the new LEDs
-			mainControllerData.put(LEDs)
-
-
-
+			mainControllerData.put(LEDs.copy())

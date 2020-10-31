@@ -16,16 +16,16 @@ class Camera(Process):
 			# TODO: maybe check for social distancing breach?
 
 			if self.prevListOfCoords is not None:
-				for i, in np.ndindex(self.prevListOfCoords):
-					coord = self.prevListOfCoords[i]
+				for coord in self.prevListOfCoords:
 					self.floormap[coord.x, coord.y] = 0
 
-			for i, in np.ndindex(self.listOfCoords):
-				coord = self.listOfCoords[i]
+			for coord in self.listOfCoords:
 				self.floormap[coord.x, coord.y] = 1
 
 			self.prevListOfCoords = self.listOfCoords
 
 			# TODO: maybe insert a delay here?
+
+			cameraData.put(self.floormap.copy())
 			
 

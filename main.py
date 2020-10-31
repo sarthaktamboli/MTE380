@@ -8,9 +8,9 @@ def initialize() -> List[Process]:
 	# TODO: Initialize floormap, intersections and people
 
 	# Set up queues for interprocess data
-	simulatorData = Queue()
 	cameraData = Queue()
 	mainControllerData = Queue()
+	simulatorData = Queue()
 
 	# Initialize processes
 	cameraProcess = Camera(floormap, simulatorData, cameraData)
@@ -18,7 +18,7 @@ def initialize() -> List[Process]:
 	simulatorProcess = Simulator(floormap, people, mainControllerData, simulatorData)
 
 	# Return processes
-	return (cameraProcess, mainControllerProcess, simulatorProcess)
+	return [cameraProcess, mainControllerProcess, simulatorProcess]
 
 def run(processes: List[Process]):
 	for process in processes:

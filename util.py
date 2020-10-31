@@ -8,8 +8,9 @@ Coord = namedtuple('Coord', ['x', 'y'])
 class Location():
 	def__init__(self, locID: int):
 		self.locID = locID
-		self.coord = getCoord()
+		self.coord = self.getCoord()
 
+	# TODO: maybe make entryCoord and exitCoord
 	def getCoord(self) -> "Coord":
 		# TODO: hardcode
 
@@ -20,7 +21,7 @@ class Person():
 		self.srcLoc = srcLoc
 		self.dstLoc = dstLoc
 		self.coord = srcLoc.coord
-		self.path = getPath()
+		self.path = self.getPath()
 		self.pathIdx = 0
 
 	def getPath(self) -> List["Coord"]:
@@ -51,6 +52,10 @@ class Lane():
 	@staticmethod
 	def get_allowable_labels() -> Set[str]:
 		return Lane.LABELS
+
+	# TODO
+	def getPath() -> List["Coord"]:
+		# TODO: hardcode
 
 
 class LED():
