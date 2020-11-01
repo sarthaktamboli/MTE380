@@ -5,7 +5,7 @@ import numpy as np
 import random
 import pygame
 
-class Simulator(Process):
+class Simulator:
 	def __init__(self, floormap: np.ndarray, people: List["Person"], mainControllerData: Queue, simulatorData: Queue):
 		Process.__init__(self)
 		self.emptyFloormap = floormap.copy()
@@ -118,7 +118,7 @@ class Simulator(Process):
 				self.people.append(newPerson)
 
 			# Shuffle list of people to change order of iteration
-			random.shuffle(people)
+			random.shuffle(self.people)
  
 		# Exit pygame
 		pygame.quit()

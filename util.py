@@ -1,5 +1,5 @@
 from typing import List, Tuple, Set, Optional
-from queue import Queue
+import queue
 from collections import namedtuple
 import numpy as np
 
@@ -372,7 +372,7 @@ class Intersection():
 		self.lane_intersections = entry_lane_intersections + exit_lane_intersections
 		self.local_controller = local_controller
 		self.coords = set(coords)
-		self.queue = Queue()
+		self.queue = queue.Queue()
 
 	def contains_coord(self, coord: Coord) -> bool:
 		return coord in self.coords

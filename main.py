@@ -6,7 +6,7 @@ from simulator import Simulator
 import numpy as np
 from util import *
 
-def initialize() -> List[Process]:
+def main():
 	# TODO: Initialize floormap, intersections and people
     # Initialize floormap
 	grid = [[-1,  0,  0, -1, -1, -1, -1,  0,  0, -1, -1, -1, -1, -1, -1,  0, -1, -1, -1,  0],
@@ -46,21 +46,11 @@ def initialize() -> List[Process]:
 	# Initialize processes
 	cameraProcess = Camera(floormap, simulatorData, cameraData)
 	mainControllerProcess = MainController(intersections, cameraData, mainControllerData)
-	simulatorProcess = Simulator(floormap, people, mainControllerData, simulatorData)
+	simulator = Simulator(floormap, people, mainControllerData, simulatorData)
 
-	# Return processes
-	return [cameraProcess, mainControllerProcess, simulatorProcess]
-
-def run(processes: List[Process]):
-	for process in processes:
-		process.start()
-	for process in processes:
-		process.run()
-
-
-def main():
-	processes = initialize()
-	run(processes)
+	cameraProcess.start()
+	mainControllerProcess.start()
+	simulator.run()
 
 
 if __name__ == "__main__":

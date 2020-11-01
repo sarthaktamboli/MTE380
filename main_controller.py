@@ -73,7 +73,7 @@ class MainController(Process):
 			LEDs = []
 
 			# Local controller turns on or off LEDs accordingly
-			for localController in controllersLEDs():
+			for localController in controllersLEDs:
 				localLEDs = [i[0] for i in controllersLEDs[localController]]
 				localPowerStates = [i[1] for i in controllersLEDs[localController]]
 				localController.power_LEDs(localLEDs, localPowerStates)
@@ -82,4 +82,4 @@ class MainController(Process):
 				LEDs += localLEDs
 
 			# Enqueue mainControllerData, which consists of the new LEDs
-			mainControllerData.put(LEDs.copy())
+			self.mainControllerData.put(LEDs.copy())

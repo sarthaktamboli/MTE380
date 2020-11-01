@@ -6,12 +6,13 @@ class Camera(Process):
 		Process.__init__(self)
 		self.floormap = floormap.copy()
 		self.cameraData = cameraData
+		self.simulatorData = simulatorData
 		self.listOfCoords = None
 		self.prevListOfCoords = None
 
 	def run(self):
 		while True:
-			self.listOfCoords = simulatorData.get()
+			self.listOfCoords = self.simulatorData.get()
 
 			# TODO: maybe check for social distancing breach?
 
@@ -26,6 +27,6 @@ class Camera(Process):
 
 			# TODO: maybe insert a delay here?
 
-			cameraData.put(self.floormap.copy())
+			self.cameraData.put(self.floormap.copy())
 			
 
