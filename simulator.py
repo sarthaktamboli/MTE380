@@ -101,8 +101,9 @@ class Simulator(Process):
 				nextCoord = person.nextCoord()
 
 				# Remove person if they have reached their destination, otherwise the person may advance
-				if currCoord == person.dstLoc.coord:
+				if currCoord == person.dstLoc.dstCoord:
 					self.people.remove(person)
+					del person
 				elif (currCoord, nextCoord) not in blockedPaths and (nextCoord, currCoord) not in blockedPaths:
 					if not any([person.coord == nextCoord for person in self.people]):
 						# 80% chance to advance if possible
