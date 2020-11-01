@@ -71,31 +71,31 @@ class Simulator(Process):
 			LEDs = self.mainControllerData.get()
 
 			# Set the screen background to black
-    		self.screen.fill(self.black)
+			self.screen.fill(self.black)
 
-    		# Draw the empty floormap
+			# Draw the empty floormap
 			for x, y in np.ndindex(self.emptyFloormap.shape):
-    			color = self.grey if self.emptyFloormap[x, y] == -1 else self.white
-    			self.drawBlock(color, x, y)
+				color = self.grey if self.emptyFloormap[x, y] == -1 else self.white
+				self.drawBlock(color, x, y)
 
-    		# Draw the people
-    		for person in self.people:
-    			self.drawPerson(self.blue, person.coord.x, person.coord.y)
+			# Draw the people
+			for person in self.people:
+				self.drawPerson(self.blue, person.coord.x, person.coord.y)
 
-    		# Draw the LEDs
-    		blockedPaths = []
-    		for LED in LEDs:
-    			color = self.red if LED.is_on else self.green
-    			self.drawLED(color, LED.coordBounds, LED.is_vertical)
+			# Draw the LEDs
+			blockedPaths = []
+			for LED in LEDs:
+				color = self.red if LED.is_on else self.green
+				self.drawLED(color, LED.coordBounds, LED.is_vertical)
 
-    			# Append blocked paths if LED was turned on
-    			if color == self.red:
-    				blockedPaths.append(LED.coordBounds)
+				# Append blocked paths if LED was turned on
+				if color == self.red:
+					blockedPaths.append(LED.coordBounds)
 
 		    # Update display
-    		pygame.display.flip()
+			pygame.display.flip()
 
-    		# Each person gets a chance to advance if possible
+			# Each person gets a chance to advance if possible
 			for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
 				currCoord = person.coord
 				nextCoord = person.nextCoord()
@@ -111,11 +111,11 @@ class Simulator(Process):
 							person.advance()
 
 			# TODO: only do this if there is less than a certain number of people?
-    		# 20% chance to add a new person
-    		if np.random.rand() < 0.2:
+			# 20% chance to add a new person
+			if np.random.rand() < 0.2:
 				# TODO: Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
-    			newPerson = Person(srcLoc, dstLoc)
-    			self.people.append(newPerson)
+				newPerson = Person(srcLoc, dstLoc)
+				self.people.append(newPerson)
 
 			# Shuffle list of people to change order of iteration
 			random.shuffle(people)

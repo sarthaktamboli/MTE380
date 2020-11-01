@@ -175,7 +175,7 @@ class Lane():
 					 [Coord(15, 20), Coord(15, 19)],																																										# Lane 5
 					 [Coord(7, 18), Coord(7, 19), Coord(7, 20)],																																							# Lane 6
 					 [Coord(2, 20), Coord(2, 19), Coord(3, 19), Coord(4, 19), Coord(4, 18), Coord(5, 18), Coord(5, 17), Coord(5, 16)],																						# Lane 7
-					 [Coord(4, 15), Coord(4, 16), Coord(4, 17), Coord(3, 17), Coord(3, 18), Coord(2, 18), Coord(1 18), Coord(1, 19), Coord(1, 20)],																			# Lane 8
+					 [Coord(4, 15), Coord(4, 16), Coord(4, 17), Coord(3, 17), Coord(3, 18), Coord(2, 18), Coord(1, 18), Coord(1, 19), Coord(1, 20)],																			# Lane 8
 					 [Coord(0, 13), Coord(1, 13), Coord(2, 13), Coord(2, 12), Coord(3, 12)],																																# Lane 9
 					 [Coord(3, 11), Coord(2, 11), Coord(1, 11), Coord(0, 11)],																																				# Lane 10
 					 [Coord(5, 4)],																																															# Lane 11

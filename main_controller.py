@@ -8,6 +8,7 @@ class MainController(Process):
 		self.cameraData = cameraData
 		self.mainControllerData = mainControllerData
 
+		'''
 		logger = logging.getLogger('main_controller_logger')
 		logger.setLevel(logging.DEBUG)
 		# create file handler which logs even debug messages
@@ -20,6 +21,7 @@ class MainController(Process):
 		logger.addHandler(fh)
 
 		self.logger = logger
+		'''
 
 	def run(self):
 		while True:

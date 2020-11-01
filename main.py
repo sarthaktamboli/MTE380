@@ -34,6 +34,8 @@ def initialize() -> List[Process]:
 	floormap = np.array(grid).transpose(1,0)
 
 	# Initialize intersections
+	intersections = []
+	people = []
 
 
 	# Set up queues for interprocess data
@@ -52,6 +54,8 @@ def initialize() -> List[Process]:
 def run(processes: List[Process]):
 	for process in processes:
 		process.start()
+	for process in processes:
+		process.run()
 
 
 def main():
