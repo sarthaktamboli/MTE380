@@ -159,6 +159,16 @@ class Person():
 			raise ValueError("nextCoord should be one unit away from currCoord")
 		return nextCoord
 
+	def prevCoord(self) -> Coord:
+		currCoord = self.path[self.pathIdx]
+		if currCoord == self.path[0]:
+			return None
+
+		prevCoord = self.path[self.pathIdx - 1]
+		if abs(currCoord.x - prevCoord.x) + abs(currCoord.y - prevCoord.y) > 1:
+			raise ValueError("prevCoord should be one unit away from currCoord")
+		return prevCoord
+
 	def advance(self):
 		self.coord = self.nextCoord()
 		self.pathIdx += 1

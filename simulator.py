@@ -78,12 +78,14 @@ class Simulator:
 		self.screen.blit(text, rect)
 
 	def run(self):
+		animationLoop = 0
 		while True:
-			# Enqueue simulator data (list of coordinates)
-			self.simulatorData.put([person.coord for person in self.people])
+			if animationLoop == 0:
+				# Enqueue simulator data (list of coordinates)
+				self.simulatorData.put([person.coord for person in self.people])
 
-			# Get LEDs from main controller data
-			LEDs = self.mainControllerData.get()
+				# Get LEDs from main controller data
+				LEDs = self.mainControllerData.get()
 
 			# Set the screen background to black
 			self.screen.fill(self.black)
@@ -98,9 +100,9 @@ class Simulator:
 				dstCoord = Location.getCoords(i)[1]
 				self.drawText("%d" % i, 15, self.grey, dstCoord.x, dstCoord.y, bold=True)
 
-			# Draw the people
 			for person in self.people:
-				self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
+				if animationLoop == 0 or person not in advancedPeople:
+					self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
 
 			# Draw the LEDs
 			blockedPaths = []
@@ -112,36 +114,52 @@ class Simulator:
 				if color == self.red:
 					blockedPaths.append(LED.coordBounds)
 
-		    # Update display
-			self.clock.tick(3)
+			if animationLoop == 0:
+				# Each person gets a chance to advance if possible
+				advancedPeople = []
+				for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
+					currCoord = person.coord
+					nextCoord = person.nextCoord()
+
+					# Remove person if they have reached their destination, otherwise the person may advance
+					if currCoord == person.dstLoc.dstCoord:
+						self.people.remove(person)
+						del person
+					elif (currCoord, nextCoord) not in blockedPaths and (nextCoord, currCoord) not in blockedPaths:
+						if not any([person.coord == nextCoord for person in self.people]):
+							# 90% chance to advance if possible
+							if np.random.rand() < 0.9:
+								person.advance()
+								advancedPeople.append(person)
+
+			if animationLoop > 0:
+				for person in advancedPeople:
+					oldCoordX, oldCoordY = person.prevCoord()
+					newCoordX, newCoordY = person.coord
+					currCoordX = oldCoordX + ((newCoordX - oldCoordX) * (21 - animationLoop) / 20)
+					currCoordY = oldCoordY + ((newCoordY - oldCoordY) * (21 - animationLoop) / 20)
+					self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
+
+			if animationLoop == 0:
+				# TODO: only do this if there is less than a certain number of people?
+				# 20% chance to add a new person
+				if np.random.rand() < 0.2:
+					# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
+					srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
+					dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
+					if not any([person.coord == Location.getCoords(srcLocID)[0] for person in self.people]):
+						if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in self.people]):
+							if srcLocID != 6 or not any([person.coord == Coord(12, 7) for person in self.people]):
+								newPerson = Person(Location(srcLocID), Location(dstLocID))
+								self.people.append(newPerson)
+
+				# Shuffle list of people to change order of iteration
+				random.shuffle(self.people)
+
+				animationLoop = 20 if len(advancedPeople) > 0 else 0
+
+			if animationLoop > 0:
+				animationLoop -= 1
+
+			self.clock.tick(40)
 			pygame.display.flip()
-
-			# Each person gets a chance to advance if possible
-			for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
-				currCoord = person.coord
-				nextCoord = person.nextCoord()
-
-				# Remove person if they have reached their destination, otherwise the person may advance
-				if currCoord == person.dstLoc.dstCoord:
-					self.people.remove(person)
-					del person
-				elif (currCoord, nextCoord) not in blockedPaths and (nextCoord, currCoord) not in blockedPaths:
-					if not any([person.coord == nextCoord for person in self.people]):
-						# 80% chance to advance if possible
-						if np.random.rand() < 0.8:
-							person.advance()
-
-			# TODO: only do this if there is less than a certain number of people?
-			# 20% chance to add a new person
-			if np.random.rand() < 0.2:
-				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
-				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
-				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
-				if not any([person.coord == Location.getCoords(srcLocID)[0] for person in self.people]):
-					if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in self.people]):
-						if srcLocID != 6 or not any([person.coord == Coord(12, 7) for person in self.people]):
-							newPerson = Person(Location(srcLocID), Location(dstLocID))
-							self.people.append(newPerson)
-
-			# Shuffle list of people to change order of iteration
-			random.shuffle(self.people)
