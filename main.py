@@ -34,17 +34,7 @@ def initialize() -> List[Process]:
 	floormap = np.array(grid).transpose(1, 0)
 
 	# Initialize intersections
-	intersections = []
-	entryLaneInt0 = []
-	entryLaneInt0.append(LaneIntersection(Coord(4, 2), LED((Coord(4, 2), Coord(5, 2))), Lane(1)))
-	entryLaneInt0.append(LaneIntersection(Coord(6, 2), LED((Coord(6, 2), Coord(5, 2))), Lane(12)))
-	exitLaneInt0 = []
-	exitLaneInt0.append(LaneIntersection(Coord(4, 3), LED((Coord(4, 3), Coord(5, 3))), Lane(0)))
-	exitLaneInt0.append(LaneIntersection(Coord(5, 4), LED((Coord(5, 4), Coord(5, 3))), Lane(11)))
-
-	intersections.append(Intersection(0, entryLaneInt0, exitLaneInt0, LocalController(set(LED((Coord(4, 2), Coord(5, 2))),LED((Coord(6, 2), Coord(5, 2))),LED((Coord(4, 3), Coord(5, 3))),LED((Coord(5, 4), Coord(5, 3)))))))
-	people = []
-
+	intersections = [Intersection(i) for i in range(11)]
 
 	# Set up queues for interprocess data
 	cameraData = Queue()

@@ -328,7 +328,7 @@ class LED():
 
 class LocalController():
 	def __init__(self, LEDs: Set["LED"]):
-		self.LEDs = set(LEDs)
+		self.LEDs = LEDs
 
 	def has_LED(self, LED: LED) -> bool:
 		return LED in self.LEDS
@@ -361,11 +361,11 @@ class LaneIntersection():
 
 
 class Intersection():
-	def __init__(self, id: int, local_controller: LocalController):
+	def __init__(self, id: int):
 		self.id = id
 		self.entry_lane_intersections, self.exit_lane_intersections = self.getLaneIntersections(id)
 		self.lane_intersections = self.entry_lane_intersections + self.exit_lane_intersections
-		self.local_controller = local_controller
+		self.local_controller = self.getLocalController()
 		self.coords = self.getCoords(id)
 		self.queue = Queue()
 
@@ -374,7 +374,7 @@ class Intersection():
 		if id == 0:
 			return set((Coord(5, 2), Coord(5, 3)))
 		elif id == 1:
-			return set((Coord(8, 2), Coord(8, 3))
+			return set((Coord(8, 2), Coord(8, 3)))
 		elif id == 2:
 			return set((Coord(14, 1), Coord(14, 2), Coord(15, 1)))
 		elif id == 3:
@@ -394,10 +394,13 @@ class Intersection():
 		elif id == 10:
 			return set((Coord(5, 5), Coord(6, 5)))
 
-	
+	def getLocalController(self) -> LocalController:
+		LEDs = set()
+		for laneIntersection in self.laneIntersections:
+			LEDs.add(laneIntersection.LED)
+		return LocalController(LEDs)
 
-	@staticmethod
-	def getLaneData(id: int) -> Tuple[List["LaneIntersection"], List["LaneIntersection"]]:
+	def getLaneData(self, id: int) -> Tuple[List["LaneIntersection"], List["LaneIntersection"]]:
 		if id == 0:
 			return ([LaneIntersection(Coord(4, 2), LED((Coord(4, 2), Coord(5, 2))), Lane(1)), LaneIntersection(Coord(6, 2), LED((Coord(6, 2), Coord(5, 2))), Lane(12))],
 					[LaneIntersection(Coord(4, 3), LED((Coord(4, 3), Coord(5, 3))), Lane(0)), LaneIntersection(Coord(5, 4), LED((Coord(5, 4), Coord(5, 3))), Lane(11))])
