@@ -412,7 +412,7 @@ class Intersection():
 			return ([LaneIntersection(Coord(8, 1), LED((Coord(8, 1), Coord(8, 2))), Lane(2)), LaneIntersection(Coord(9, 2), LED((Coord(9, 2), Coord(8, 2))), Lane(13)), LaneIntersection(Coord(8, 4), LED((Coord(8, 4), Coord(8, 3))), Lane(22))],
 					[LaneIntersection(Coord(7, 2), LED((Coord(7, 2), Coord(8, 2))), Lane(12)), LaneIntersection(Coord(9, 3), LED((Coord(9, 3), Coord(8, 3))), Lane(23))])
 		elif id == 2:
-			return ([LaneIntersection(Coord(13, 2), LED((Coord(13, 2), Coord(14, 2))), Lane(23)), LaneIntersection(Coord(15, 2), LED((Coord(15, 2), Coord(14, 2))), Lane(14))],
+			return ([LaneIntersection(Coord(13, 2), LED((Coord(13, 2), Coord(14, 2))), Lane(23)), LaneIntersection(Coord(15, 2), LED((Coord(15, 2), Coord(15, 1))), Lane(14))],
 					[LaneIntersection(Coord(15, 0), LED((Coord(15, 0), Coord(15, 1))), Lane(3)), LaneIntersection(Coord(13, 1), LED((Coord(13, 1), Coord(14, 1))), Lane(13)), LaneIntersection(Coord(14, 3), LED((Coord(14, 3), Coord(14, 2))), Lane(24))])
 		elif id == 3:
 			return ([LaneIntersection(Coord(18, 3), LED((Coord(18, 3), Coord(17, 3))), Lane(15)), LaneIntersection(Coord(15, 3), LED((Coord(15, 3), Coord(16, 3))), Lane(24))],
