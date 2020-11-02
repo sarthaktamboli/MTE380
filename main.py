@@ -35,8 +35,6 @@ def main():
 
 	# Initialize intersections
 	intersections = []
-	people = []
-
 
 	# Set up queues for interprocess data
 	cameraData = Queue()
@@ -46,7 +44,7 @@ def main():
 	# Initialize processes
 	cameraProcess = Camera(floormap, simulatorData, cameraData)
 	mainControllerProcess = MainController(intersections, cameraData, mainControllerData)
-	simulator = Simulator(floormap, people, mainControllerData, simulatorData)
+	simulator = Simulator(floormap, mainControllerData, simulatorData)
 
 	cameraProcess.start()
 	mainControllerProcess.start()

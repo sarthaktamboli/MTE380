@@ -4,6 +4,7 @@ from multiprocessing import Process, Queue
 class Camera(Process):
 	def __init__(self, floormap: np.ndarray, simulatorData: Queue, cameraData: Queue):
 		Process.__init__(self)
+		self.emptyFloormap = floormap.copy()
 		self.floormap = floormap.copy()
 		self.cameraData = cameraData
 		self.simulatorData = simulatorData
@@ -18,10 +19,10 @@ class Camera(Process):
 
 			if self.prevListOfCoords is not None:
 				for coord in self.prevListOfCoords:
-					self.floormap[coord.x, coord.y] = 0
+					self.floormap[coord.x, coord.y] = self.emptyFloormap[coord.x, coord.y]
 
 			for coord in self.listOfCoords:
-				self.floormap[coord.x, coord.y] = 1
+				self.floormap[coord.x, coord.y] = 5
 
 			self.prevListOfCoords = self.listOfCoords
 

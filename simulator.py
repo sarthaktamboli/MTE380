@@ -6,11 +6,11 @@ import random
 import pygame
 
 class Simulator:
-	def __init__(self, floormap: np.ndarray, people: List["Person"], mainControllerData: Queue, simulatorData: Queue):
+	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue):
 		self.emptyFloormap = floormap.copy()
-		self.people = people
 		self.mainControllerData = mainControllerData
 		self.simulatorData = simulatorData
+		self.people = []
 
 		# Initialize pygame
 		pygame.init()

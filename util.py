@@ -334,7 +334,7 @@ class LocalController():
 		self.LEDs = set(LEDs)
 
 	def has_LED(self, LED: LED) -> bool:
-		return LED in self.LEDS
+		return LED in self.LEDs
 
 	def has_LEDs(self, LEDs: List["LED"]) -> bool:
 		return all([self.has_LED(LED) for LED in LEDs])
@@ -380,9 +380,9 @@ class Intersection():
 	def contains_coord(self, coord: Coord) -> bool:
 		return coord in self.coords
 
-	def is_occupied(self, grid: np.ndarray) -> bool:
+	def is_occupied(self, floormap: np.ndarray) -> bool:
 		for coord in self.coords:
-			if grid[coord.x, coord.y] == 1:
+			if floormap[coord.x, coord.y] == 5:
 				return True
 
 		return False
