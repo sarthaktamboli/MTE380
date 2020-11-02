@@ -5,29 +5,34 @@ import numpy as np
 import random
 import pygame
 
-class Simulator(Process):
-	def __init__(self, floormap: np.ndarray, people: List["Person"], mainControllerData: Queue, simulatorData: Queue):
-		Process.__init__(self)
+class Simulator:
+	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue):
 		self.emptyFloormap = floormap.copy()
-		self.people = people
 		self.mainControllerData = mainControllerData
 		self.simulatorData = simulatorData
+		self.people = []
 
 		# Initialize pygame
 		pygame.init()
+		self.clock = pygame.time.Clock()
 
 		# Define colors
-		self.black = (0x00, 0x00, 0x00)
-		self.white = (0xFF, 0xFF, 0xFF)
-		self.grey  = (0x33, 0x33, 0x33)
-		self.red   = (0xFF, 0x00, 0x00)
-		self.green = (0x00, 0xFF, 0x00)
-		self.blue  = (0x00, 0x00, 0xFF)
+		self.black  = (0x00, 0x00, 0x00)
+		self.white  = (0xDD, 0xDD, 0xDD)
+		self.grey   = (0x33, 0x33, 0x33)
+		self.red    = (0xFF, 0x00, 0x00)
+		self.green  = (0x00, 0xFF, 0x00)
+		self.pink   = (0xFF, 0x77, 0x77)
+		self.purple = (0xDD, 0xAF, 0xFF)
+		self.blue   = (0x77, 0x77, 0xFF)
+		self.cyan   = (0x77, 0xFF, 0xFF)
+		self.yellow = (0xFF, 0xF8, 0x60)
+		self.floormapColors = [self.white, self.pink, self.purple, self.cyan, self.blue, self.yellow]
 
 		# Define block dimensions and margins
 		self.blockWidth = 20
 		self.blockHeight = 20
-		self.blockMargin = 5
+		self.blockMargin = 3
 
 		# Define point dimensions
 		self.pointRadius = 5
@@ -36,6 +41,10 @@ class Simulator(Process):
 		screenWidth = (self.blockMargin + self.blockWidth) * self.emptyFloormap.shape[0] + self.blockMargin
 		screenHeight = (self.blockMargin + self.blockHeight) * self.emptyFloormap.shape[1] + self.blockMargin
 		self.screen = pygame.display.set_mode([screenWidth, screenHeight])
+
+	def __del__(self):
+		# Exit pygame
+		pygame.quit()
 
 	def getPygameCoords(self, x: int, y: int) -> "Coord":
 		return Coord((self.blockMargin + self.blockWidth) * x + self.blockMargin + (self.blockWidth / 2),
@@ -75,12 +84,12 @@ class Simulator(Process):
 
 			# Draw the empty floormap
 			for x, y in np.ndindex(self.emptyFloormap.shape):
-				color = self.grey if self.emptyFloormap[x, y] == -1 else self.white
+				color = self.floormapColors[self.emptyFloormap[x, y] + 1]
 				self.drawBlock(color, x, y)
 
 			# Draw the people
 			for person in self.people:
-				self.drawPerson(self.blue, person.coord.x, person.coord.y)
+				self.drawPerson(self.grey, person.coord.x, person.coord.y)
 
 			# Draw the LEDs
 			blockedPaths = []
@@ -93,6 +102,7 @@ class Simulator(Process):
 					blockedPaths.append(LED.coordBounds)
 
 		    # Update display
+			self.clock.tick(3)
 			pygame.display.flip()
 
 			# Each person gets a chance to advance if possible
@@ -113,15 +123,14 @@ class Simulator(Process):
 			# TODO: only do this if there is less than a certain number of people?
 			# 20% chance to add a new person
 			if np.random.rand() < 0.2:
-				# TODO: Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
-				newPerson = Person(srcLoc, dstLoc)
+				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
+				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
+				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
+				newPerson = Person(Location(srcLocID), Location(dstLocID))
 				self.people.append(newPerson)
 
 			# Shuffle list of people to change order of iteration
-			random.shuffle(people)
- 
-		# Exit pygame
-		pygame.quit()
+			random.shuffle(self.people)
 
 
 

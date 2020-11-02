@@ -38,7 +38,7 @@ class MainController(Process):
 
 				# Enqueue people waiting at entry lane intersections to get into the intersection if not already in queue
 				for entryLaneIntersection in intersection.entry_lane_intersections:
-					if floormap[entryLaneIntersection.coord.x, entryLaneIntersection.coord.y] == 1:
+					if floormap[entryLaneIntersection.coord.x, entryLaneIntersection.coord.y] == 5:
 						if entryLaneIntersection not in intersection.queue.queue:
 							intersection.queue.put(entryLaneIntersection)
  
@@ -50,7 +50,7 @@ class MainController(Process):
 
 					# Turn on all LEDs of exit lane intersections that are blocked, turn off otherwise
 					for exitLaneIntersection in intersection.exit_lane_intersections:
-						powerState = floormap[exitLaneIntersection.coord.x, exitLaneIntersection.coord.y] == 1
+						powerState = floormap[exitLaneIntersection.coord.x, exitLaneIntersection.coord.y] == 5
 						controllersLEDs[intersection.local_controller].append((exitLaneIntersection.LED, powerState))
 				else:
 					# Turn on all LEDs of exit lane intersections to prevent entry
@@ -73,7 +73,7 @@ class MainController(Process):
 			LEDs = []
 
 			# Local controller turns on or off LEDs accordingly
-			for localController in controllersLEDs():
+			for localController in controllersLEDs:
 				localLEDs = [i[0] for i in controllersLEDs[localController]]
 				localPowerStates = [i[1] for i in controllersLEDs[localController]]
 				localController.power_LEDs(localLEDs, localPowerStates)
@@ -82,4 +82,4 @@ class MainController(Process):
 				LEDs += localLEDs
 
 			# Enqueue mainControllerData, which consists of the new LEDs
-			mainControllerData.put(LEDs.copy())
+			self.mainControllerData.put(LEDs.copy())
