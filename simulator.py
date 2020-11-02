@@ -132,15 +132,6 @@ class Simulator:
 								person.advance()
 								advancedPeople.append(person)
 
-			if animationLoop > 0:
-				for person in advancedPeople:
-					oldCoordX, oldCoordY = person.prevCoord()
-					newCoordX, newCoordY = person.coord
-					currCoordX = oldCoordX + ((newCoordX - oldCoordX) * (21 - animationLoop) / 20)
-					currCoordY = oldCoordY + ((newCoordY - oldCoordY) * (21 - animationLoop) / 20)
-					self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
-
-			if animationLoop == 0:
 				# TODO: only do this if there is less than a certain number of people?
 				# 20% chance to add a new person
 				if np.random.rand() < 0.2:
@@ -157,8 +148,13 @@ class Simulator:
 				random.shuffle(self.people)
 
 				animationLoop = 20 if len(advancedPeople) > 0 else 0
-
-			if animationLoop > 0:
+			else:
+				for person in advancedPeople:
+					oldCoordX, oldCoordY = person.prevCoord()
+					newCoordX, newCoordY = person.coord
+					currCoordX = oldCoordX + ((newCoordX - oldCoordX) * (21 - animationLoop) / 20)
+					currCoordY = oldCoordY + ((newCoordY - oldCoordY) * (21 - animationLoop) / 20)
+					self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
 				animationLoop -= 1
 
 			self.clock.tick(40)
