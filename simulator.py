@@ -58,13 +58,10 @@ class Simulator:
     					 self.blockHeight)
 		pygame.draw.rect(self.screen, color, blockLocation)
 
-	def drawPerson(self, color: Tuple[int], x: int, y: int, dstLocID):
+	def drawPerson(self, color: Tuple[int], x: int, y: int, dstLocID: int):
 		personLocation = self.getPygameCoords(x, y)
 		pygame.draw.circle(self.screen, color, personLocation, self.pointRadius)
-		text = pygame.font.SysFont('arial', 10).render('%d' % dstLocID, True, self.white)
-		rect = text.get_rect()
-		rect.center = self.getPygameCoords(x, y)
-		self.screen.blit(text, rect)
+		self.drawText("%d" % dstLocID, 10, self.white, x, y)
 
 	def drawLED(self, color: Tuple[int], coordBounds: Tuple["Coords"], is_vertical: bool):
 		pygameCoords1 = self.getPygameCoords(coordBounds[0].x, coordBounds[0].y)
@@ -74,6 +71,11 @@ class Simulator:
 					  [(midpoint.x - (self.blockWidth / 2), midpoint.y), (midpoint.x + (self.blockWidth / 2), midpoint.y)]
 		pygame.draw.lines(self.screen, color, False, LEDLocation, self.blockMargin)
 
+	def drawText(self, text: str, size: int, color: Tuple[int], x: int, y: int, bold: bool=False):
+		text = pygame.font.SysFont('arial', size, bold=bold).render(text, True, color)
+		rect = text.get_rect()
+		rect.center = self.getPygameCoords(x, y)
+		self.screen.blit(text, rect)
 
 	def run(self):
 		while True:
@@ -90,6 +92,11 @@ class Simulator:
 			for x, y in np.ndindex(self.emptyFloormap.shape):
 				color = self.floormapColors[self.emptyFloormap[x, y] + 1]
 				self.drawBlock(color, x, y)
+
+			# Draw dstLoc texts
+			for i in range(1, 9):
+				dstCoord = Location.getCoords(i)[1]
+				self.drawText("%d" % i, 15, self.grey, dstCoord.x, dstCoord.y, bold=True)
 
 			# Draw the people
 			for person in self.people:
@@ -138,79 +145,3 @@ class Simulator:
 
 			# Shuffle list of people to change order of iteration
 			random.shuffle(self.people)
-
-
-
-
-'''
-# Create a 2 dimensional array. A two dimensional
-# array is simply a list of lists.
-grid = []
-for row in range(10):
-    # Add an empty array that will hold each cell
-    # in this row
-    grid.append([])
-    for column in range(10):
-        grid[row].append(0)  # Append a cell
- 
-# Set row 1, cell 5 to one. (Remember rows and
-# column numbers start at zero.)
-grid[1][5] = 1
- 
-# Initialize pygame
-pygame.init()
- 
-# Set the HEIGHT and WIDTH of the screen
-WINDOW_SIZE = [255, 255]
-screen = pygame.display.set_mode(WINDOW_SIZE)
- 
-# Set title of screen
-pygame.display.set_caption("Array Backed Grid")
- 
-# Loop until the user clicks the close button.
-done = False
- 
-# Used to manage how fast the screen updates
-clock = pygame.time.Clock()
- 
-# -------- Main Program Loop -----------
-while not done:
-    for event in pygame.event.get():  # User did something
-        if event.type == pygame.QUIT:  # If user clicked close
-            done = True  # Flag that we are done so we exit this loop
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            # User clicks the mouse. Get the position
-            pos = pygame.mouse.get_pos()
-            # Change the x/y screen coordinates to grid coordinates
-            column = pos[0] // (WIDTH + MARGIN)
-            row = pos[1] // (HEIGHT + MARGIN)
-            # Set that location to one
-            grid[row][column] = 1
-            print("Click ", pos, "Grid coordinates: ", row, column)
- 
-    # Set the screen background
-    screen.fill(BLACK)
- 
-    # Draw the grid
-    for row in range(10):
-        for column in range(10):
-            color = WHITE
-            if grid[row][column] == 1:
-                color = GREEN
-            pygame.draw.rect(screen,
-                             color,
-                             [(MARGIN + WIDTH) * column + MARGIN,
-                              (MARGIN + HEIGHT) * row + MARGIN,
-                              WIDTH,
-                              HEIGHT])
- 
-    # Limit to 60 frames per second
-    clock.tick(60)
- 
-    # Go ahead and update the screen with what we've drawn.
-    pygame.display.flip()
- 
-# Be IDLE friendly. If you forget this line, the program will 'hang'
-# on exit.
-pygame.quit()
-'''
