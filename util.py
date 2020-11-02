@@ -11,7 +11,7 @@ class Location():
 		self.srcCoord, self.dstCoord = self.getCoords(self.locID)
 
 	@staticmethod
-	def getCoord(self, locID: int) -> "Coord":
+	def getCoords(locID: int) -> "Coord":
 		locCoords = [(Coord(2, 20), Coord(1, 20)),		# Location 1
 					 (Coord(1, 0), Coord(2, 0)),		# Location 2
 					 (Coord(0, 13), Coord(0, 11)),		# Location 3
@@ -20,7 +20,7 @@ class Location():
 					 (Coord(12, 16), Coord(8, 5)),		# Location 6
 					 (None, Coord(19, 0)),				# Location 7
 					 (Coord(19, 8), Coord(19, 8))]		# Location 8
-		return locCoords[locID]
+		return locCoords[locID - 1]
 
 class Person():
 	def __init__(self, srcLoc: Location, dstLoc: Location):
@@ -31,7 +31,7 @@ class Person():
 
 		self.srcLoc = srcLoc
 		self.dstLoc = dstLoc
-		self.coord = srcLoc.coord
+		self.coord = srcLoc.srcCoord
 		self.path = self.getPath()
 		self.pathIdx = 0
 
@@ -150,6 +150,9 @@ class Person():
 
 	def nextCoord(self) -> Coord:
 		currCoord = self.path[self.pathIdx]
+		if currCoord == self.path[-1]:
+			return None
+
 		nextCoord = self.path[self.pathIdx + 1]
 		if abs(currCoord.x - nextCoord.x) + abs(currCoord.y - nextCoord.y) > 1:
 			raise ValueError("nextCoord should be one unit away from currCoord")
