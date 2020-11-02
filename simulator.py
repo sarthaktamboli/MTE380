@@ -39,7 +39,7 @@ class Simulator:
 
 		# Set the dimensions of the screen
 		screenWidth = (self.blockMargin + self.blockWidth) * self.emptyFloormap.shape[0] + self.blockMargin
-		screenHeight = (self.blockMargin + self.blockHeight) * self.emptyFloormap.shape[1] + self.blockMargin
+		screenHeight = (self.blockMargin + self.blockHeight) * (self.emptyFloormap.shape[1] + 1) + self.blockMargin
 		self.screen = pygame.display.set_mode([screenWidth, screenHeight])
 
 	def __del__(self):
@@ -48,7 +48,7 @@ class Simulator:
 
 	def getPygameCoords(self, x: int, y: int) -> "Coord":
 		return Coord((self.blockMargin + self.blockWidth) * x + self.blockMargin + (self.blockWidth / 2),
-			    	 (self.blockMargin + self.blockHeight) * y + self.blockMargin + (self.blockHeight / 2))
+			    	 (self.blockMargin + self.blockHeight) * (y + 1) + self.blockMargin + (self.blockHeight / 2))
 
 	def drawBlock(self, color: Tuple[int], x: int, y: int):
 		pygameCoords = self.getPygameCoords(x, y)
@@ -71,15 +71,22 @@ class Simulator:
 					  [(midpoint.x - (self.blockWidth / 2), midpoint.y), (midpoint.x + (self.blockWidth / 2), midpoint.y)]
 		pygame.draw.lines(self.screen, color, False, LEDLocation, self.blockMargin)
 
-	def drawText(self, text: str, size: int, color: Tuple[int], x: int, y: int, bold: bool=False):
+	def drawText(self, text: str, size: int, color: Tuple[int], x: int, y: int, bold: bool=False, align: str='center'):
 		text = pygame.font.SysFont('arial', size, bold=bold).render(text, True, color)
 		rect = text.get_rect()
-		rect.center = self.getPygameCoords(x, y)
+		center = self.getPygameCoords(x, y)
+		if align == 'center':
+			rect.center = center
+		elif align == 'left':
+			rect.center = (center.x + (rect.width / 2), center.y)
+		elif align == 'right':
+			rect.center = (center.x - (rect.width / 2), center.y)
 		self.screen.blit(text, rect)
 
 	def run(self):
 		animationLoop = 0
 		while True:
+			# Backend
 			if animationLoop == 0:
 				# Enqueue simulator data (list of coordinates)
 				self.simulatorData.put([person.coord for person in self.people])
@@ -87,34 +94,12 @@ class Simulator:
 				# Get LEDs from main controller data
 				LEDs = self.mainControllerData.get()
 
-			# Set the screen background to black
-			self.screen.fill(self.black)
+				blockedPaths = []
+				for LED in LEDs:
+					# Append blocked paths if LED was turned on
+					if LED.is_on:
+						blockedPaths.append(LED.coordBounds)
 
-			# Draw the empty floormap
-			for x, y in np.ndindex(self.emptyFloormap.shape):
-				color = self.floormapColors[self.emptyFloormap[x, y] + 1]
-				self.drawBlock(color, x, y)
-
-			# Draw dstLoc texts
-			for i in range(1, 9):
-				dstCoord = Location.getCoords(i)[1]
-				self.drawText("%d" % i, 15, self.grey, dstCoord.x, dstCoord.y, bold=True)
-
-			for person in self.people:
-				if animationLoop == 0 or person not in advancedPeople:
-					self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
-
-			# Draw the LEDs
-			blockedPaths = []
-			for LED in LEDs:
-				color = self.red if LED.is_on else self.green
-				self.drawLED(color, LED.coordBounds, LED.is_vertical())
-
-				# Append blocked paths if LED was turned on
-				if color == self.red:
-					blockedPaths.append(LED.coordBounds)
-
-			if animationLoop == 0:
 				# Each person gets a chance to advance if possible
 				advancedPeople = []
 				for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
@@ -133,8 +118,10 @@ class Simulator:
 								advancedPeople.append(person)
 
 				# TODO: only do this if there is less than a certain number of people?
-				# 20% chance to add a new person
-				if np.random.rand() < 0.2:
+				# 50% chance to add a new person
+				x = len(self.people)
+				probability = ((x ** 2) / 1600) - (x / 20) + 1
+				if np.random.rand() < probability:
 					# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
 					srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
 					dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
@@ -148,14 +135,40 @@ class Simulator:
 				random.shuffle(self.people)
 
 				animationLoop = 20 if len(advancedPeople) > 0 else 0
-			else:
-				for person in advancedPeople:
-					oldCoordX, oldCoordY = person.prevCoord()
-					newCoordX, newCoordY = person.coord
-					currCoordX = oldCoordX + ((newCoordX - oldCoordX) * (21 - animationLoop) / 20)
-					currCoordY = oldCoordY + ((newCoordY - oldCoordY) * (21 - animationLoop) / 20)
-					self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
-				animationLoop -= 1
+			# Frontend
+			else:				
+				# Set the screen background to black
+				self.screen.fill(self.black)
 
-			self.clock.tick(40)
-			pygame.display.flip()
+				# Draw the empty floormap
+				for x, y in np.ndindex(self.emptyFloormap.shape):
+					color = self.floormapColors[self.emptyFloormap[x, y] + 1]
+					self.drawBlock(color, x, y)
+
+				# Draw dstLoc texts
+				for i in range(1, 9):
+					dstCoord = Location.getCoords(i)[1]
+					self.drawText("%d" % i, 15, self.grey, dstCoord.x, dstCoord.y, bold=True)
+
+				# Display people count
+				self.drawText("People Count: %d" % len(self.people), 17, self.white, 0, -1, bold=True, align='left')
+
+				# Draw the LEDs
+				for LED in LEDs:
+					color = self.red if LED.is_on else self.green
+					self.drawLED(color, LED.coordBounds, LED.is_vertical())
+
+				for person in self.people:
+					if person not in advancedPeople:
+						self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
+					else:
+						oldCoordX, oldCoordY = person.prevCoord()
+						newCoordX, newCoordY = person.coord
+						currCoordX = oldCoordX + ((newCoordX - oldCoordX) * (21 - animationLoop) / 20)
+						currCoordY = oldCoordY + ((newCoordY - oldCoordY) * (21 - animationLoop) / 20)
+						self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
+
+				self.clock.tick(40)
+				pygame.display.flip()
+
+				animationLoop -= 1
