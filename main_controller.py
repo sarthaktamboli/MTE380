@@ -2,9 +2,8 @@ from util import *
 from multiprocessing import Process, Queue
 
 class MainController(Process):
-	def __init__(self, intersections: List["Intersection"], cameraData: Queue, mainControllerData: Queue):
+	def __init__(self, cameraData: Queue, mainControllerData: Queue):
 		Process.__init__(self)
-		self.intersections = intersections.copy()
 		self.cameraData = cameraData
 		self.mainControllerData = mainControllerData
 
@@ -24,6 +23,7 @@ class MainController(Process):
 		'''
 
 	def run(self):
+		self.intersections = [Intersection(i) for i in range(11)]
 		while True:
 			# Get floormap from camera data
 			floormap = self.cameraData.get()

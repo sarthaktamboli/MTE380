@@ -35,7 +35,7 @@ class Simulator:
 		self.blockMargin = 3
 
 		# Define point dimensions
-		self.pointRadius = 5
+		self.pointRadius = 7
 
 		# Set the dimensions of the screen
 		screenWidth = (self.blockMargin + self.blockWidth) * self.emptyFloormap.shape[0] + self.blockMargin
@@ -58,13 +58,17 @@ class Simulator:
     					 self.blockHeight)
 		pygame.draw.rect(self.screen, color, blockLocation)
 
-	def drawPerson(self, color: Tuple[int], x: int, y: int):
+	def drawPerson(self, color: Tuple[int], x: int, y: int, dstLocID):
 		personLocation = self.getPygameCoords(x, y)
 		pygame.draw.circle(self.screen, color, personLocation, self.pointRadius)
+		text = pygame.font.SysFont('arial', 10).render('%d' % dstLocID, True, self.white)
+		rect = text.get_rect()
+		rect.center = self.getPygameCoords(x, y)
+		self.screen.blit(text, rect)
 
 	def drawLED(self, color: Tuple[int], coordBounds: Tuple["Coords"], is_vertical: bool):
-		pygameCoords1 = self.getPygameCoords(coordBounds[0])
-		pygameCoords2 = self.getPygameCoords(coordBounds[1])
+		pygameCoords1 = self.getPygameCoords(coordBounds[0].x, coordBounds[0].y)
+		pygameCoords2 = self.getPygameCoords(coordBounds[1].x, coordBounds[1].y)
 		midpoint = Coord((pygameCoords1.x + pygameCoords2.x) / 2, (pygameCoords1.y + pygameCoords2.y) / 2)
 		LEDLocation = [(midpoint.x, midpoint.y - (self.blockHeight / 2)), (midpoint.x, midpoint.y + (self.blockHeight / 2))] if is_vertical else \
 					  [(midpoint.x - (self.blockWidth / 2), midpoint.y), (midpoint.x + (self.blockWidth / 2), midpoint.y)]
@@ -89,13 +93,13 @@ class Simulator:
 
 			# Draw the people
 			for person in self.people:
-				self.drawPerson(self.grey, person.coord.x, person.coord.y)
+				self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
 
 			# Draw the LEDs
 			blockedPaths = []
 			for LED in LEDs:
 				color = self.red if LED.is_on else self.green
-				self.drawLED(color, LED.coordBounds, LED.is_vertical)
+				self.drawLED(color, LED.coordBounds, LED.is_vertical())
 
 				# Append blocked paths if LED was turned on
 				if color == self.red:
@@ -126,8 +130,11 @@ class Simulator:
 				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
 				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
 				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
-				newPerson = Person(Location(srcLocID), Location(dstLocID))
-				self.people.append(newPerson)
+				if not any([person.coord == Location.getCoords(srcLocID)[0] for person in self.people]):
+					if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in self.people]):
+						if srcLocID != 6 or not any([person.coord == Coord(12, 7) for person in self.people]):
+							newPerson = Person(Location(srcLocID), Location(dstLocID))
+							self.people.append(newPerson)
 
 			# Shuffle list of people to change order of iteration
 			random.shuffle(self.people)

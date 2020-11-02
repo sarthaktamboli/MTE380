@@ -32,9 +32,6 @@ def main():
 	
 	floormap = np.array(grid).transpose(1,0)
 
-	# Initialize intersections
-	intersections = [Intersection(i) for i in range(11)]
-
 	# Set up queues for interprocess data
 	cameraData = Queue()
 	mainControllerData = Queue()
@@ -42,7 +39,7 @@ def main():
 
 	# Initialize processes
 	cameraProcess = Camera(floormap, simulatorData, cameraData)
-	mainControllerProcess = MainController(intersections, cameraData, mainControllerData)
+	mainControllerProcess = MainController(cameraData, mainControllerData)
 	simulator = Simulator(floormap, mainControllerData, simulatorData)
 
 	cameraProcess.start()

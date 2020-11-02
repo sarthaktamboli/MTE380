@@ -2,6 +2,7 @@ from typing import List, Tuple, Set, Optional
 import queue
 from collections import namedtuple
 import numpy as np
+import time
 
 Coord = namedtuple('Coord', ['x', 'y'])
 
@@ -315,18 +316,18 @@ class LED():
 		self.coordBounds = coordBounds
 		self.is_on = False
 
-	def power_on():
+	def power_on(self):
 		if not self.is_on:
 			time.sleep(0.0001)
 			self.is_on = True
 
-	def power_off():
+	def power_off(self):
 		if self.is_on:
 			time.sleep(0.0001)
 			self.is_on = False
 
-	def is_vertical() -> bool:
-		return abs(coordBounds[0].y - coordBounds[1].y) == 1
+	def is_vertical(self) -> bool:
+		return abs(self.coordBounds[0].x - self.coordBounds[1].x) == 1
 
 
 class LocalController():
@@ -405,8 +406,8 @@ class Intersection():
 
 	def getLaneIntersections(self, id: int) -> Tuple[List["LaneIntersection"], List["LaneIntersection"]]:
 		if id == 0:
-			return ([LaneIntersection(Coord(4, 2), LED((Coord(4, 2), Coord(5, 2))), Lane(1)), LaneIntersection(Coord(6, 2), LED((Coord(6, 2), Coord(5, 2))), Lane(12))],
-					[LaneIntersection(Coord(4, 3), LED((Coord(4, 3), Coord(5, 3))), Lane(0)), LaneIntersection(Coord(5, 4), LED((Coord(5, 4), Coord(5, 3))), Lane(11))])
+			return ([LaneIntersection(Coord(4, 3), LED((Coord(4, 3), Coord(5, 3))), Lane(0)), LaneIntersection(Coord(6, 2), LED((Coord(6, 2), Coord(5, 2))), Lane(12))],
+					[LaneIntersection(Coord(4, 2), LED((Coord(4, 2), Coord(5, 2))), Lane(1)), LaneIntersection(Coord(5, 4), LED((Coord(5, 4), Coord(5, 3))), Lane(11))])
 		elif id == 1:
 			return ([LaneIntersection(Coord(8, 1), LED((Coord(8, 1), Coord(8, 2))), Lane(2)), LaneIntersection(Coord(9, 2), LED((Coord(9, 2), Coord(8, 2))), Lane(13)), LaneIntersection(Coord(8, 4), LED((Coord(8, 4), Coord(8, 3))), Lane(22))],
 					[LaneIntersection(Coord(7, 2), LED((Coord(7, 2), Coord(8, 2))), Lane(12)), LaneIntersection(Coord(9, 3), LED((Coord(9, 3), Coord(8, 3))), Lane(23))])
