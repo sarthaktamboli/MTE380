@@ -4,6 +4,7 @@ from multiprocessing import Process, Queue
 import numpy as np
 import random
 import pygame
+import os
 
 class Simulator:
 	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue):
@@ -86,6 +87,11 @@ class Simulator:
 	def run(self):
 		animationLoop = 0
 		while True:
+			for event in pygame.event.get():  # User did something
+				if event.type == pygame.QUIT:  # If user clicked close
+					pygame.quit()
+					os._exit(1)
+
 			# Backend
 			if animationLoop == 0:
 				# Enqueue simulator data (list of coordinates)

@@ -328,12 +328,12 @@ class LED():
 
 	def power_on(self):
 		if not self.is_on:
-			time.sleep(0.0001)
+			#time.sleep(0.0001)
 			self.is_on = True
 
 	def power_off(self):
 		if self.is_on:
-			time.sleep(0.0001)
+			#time.sleep(0.0001)
 			self.is_on = False
 
 	def is_vertical(self) -> bool:
