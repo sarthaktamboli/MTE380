@@ -40,7 +40,7 @@ def main():
 	# Initialize processes
 	cameraProcess = Camera(floormap, simulatorData, cameraData)
 	mainControllerProcess = MainController(cameraData, mainControllerData)
-	simulator = Simulator(floormap, mainControllerData, simulatorData)
+	simulator = Simulator(floormap, mainControllerData, simulatorData, debug=True)
 
 	cameraProcess.start()
 	mainControllerProcess.start()
@@ -48,4 +48,7 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+	try:
+		main()
+	except Exception as e:
+		print("Error: {}".format(str(e))) 

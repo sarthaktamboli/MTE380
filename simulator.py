@@ -7,10 +7,11 @@ import pygame
 import os
 
 class Simulator:
-	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue):
+	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue, debug: Optional[bool] = False):
 		self.emptyFloormap = floormap.copy()
 		self.mainControllerData = mainControllerData
 		self.simulatorData = simulatorData
+		self.debug = debug
 		self.people = []
 
 		# Initialize pygame
@@ -109,6 +110,7 @@ class Simulator:
 			for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
 				currCoord = person.coord
 				nextCoord = person.nextCoord()
+				advanced = False
 
 				# Remove person if they have reached their destination, otherwise the person may advance
 				if currCoord == person.dstLoc.dstCoord:
@@ -118,20 +120,25 @@ class Simulator:
 					if not any([person.coord == nextCoord for person in self.people]):
 						# 90% chance to advance if possible
 						if np.random.rand() < 0.9:
-							person.advance()
+							person.advance(nextCoord)
 							advancedPeople.append(person)
+							advanced = True
+
+				if not advanced:
+					person.wait()
 
 			# TODO: only do this if there is less than a certain number of people?
 			x = len(self.people)
+			# quadratic probability, 1 when x = 0, 0 when x = 40
 			probability = ((x ** 2) / 1600) - (x / 20) + 1
-			if np.random.rand() < probability:
+			if x == 0: #np.random.rand() < probability:
 				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
 				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
 				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
 				if not any([person.coord == Location.getCoords(srcLocID)[0] for person in self.people]):
 					if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in self.people]):
 						if srcLocID != 6 or not any([person.coord == Coord(12, 7) for person in self.people]):
-							newPerson = Person(Location(srcLocID), Location(dstLocID))
+							newPerson = SmartPerson(self.emptyFloormap, Location(4), Location(3))#Location(srcLocID), Location(dstLocID))
 							self.people.append(newPerson)
 
 			# Shuffle list of people to change order of iteration
@@ -175,3 +182,6 @@ class Simulator:
 
 				self.clock.tick(40)
 				pygame.display.flip()
+
+			if self.debug:
+				input("Next")
