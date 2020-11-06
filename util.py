@@ -96,7 +96,7 @@ class Person():
 	personPaths[(8, 6)] = [15, 14, 13, 12, 11]					# Special Case 3 and 8
 	personPaths[(8, 7)] = [15, 4]								# Special Case 8
 
-	def __init__(self, srcLoc: Location, dstLoc: Location):
+	def __init__(self, srcLoc: Location, dstLoc: Location, smart: bool=False):
 		if srcLoc.locID == 7:
 			raise ValueError("Location 7 is exit only")
 		if srcLoc.locID == dstLoc.locID == 8:
@@ -105,6 +105,7 @@ class Person():
 		self.srcLoc = srcLoc
 		self.dstLoc = dstLoc
 		self.coord = srcLoc.srcCoord
+
 		self.path = self.getPath()
 		self.pathIdx = 0
 
@@ -150,20 +151,20 @@ class Person():
 
 
 	def nextCoord(self) -> Coord:
-		currCoord = self.path[self.pathIdx]
-		if currCoord == self.path[-1]:
+		if self.pathIdx == len(self.path) - 1:
 			return None
 
+		currCoord = self.path[self.pathIdx]
 		nextCoord = self.path[self.pathIdx + 1]
 		if abs(currCoord.x - nextCoord.x) + abs(currCoord.y - nextCoord.y) > 1:
 			raise ValueError("nextCoord should be one unit away from currCoord")
 		return nextCoord
 
 	def prevCoord(self) -> Coord:
-		currCoord = self.path[self.pathIdx]
-		if currCoord == self.path[0]:
+		if self.pathIdx == 0:
 			return None
 
+		currCoord = self.path[self.pathIdx]
 		prevCoord = self.path[self.pathIdx - 1]
 		if abs(currCoord.x - prevCoord.x) + abs(currCoord.y - prevCoord.y) > 1:
 			raise ValueError("prevCoord should be one unit away from currCoord")
@@ -175,111 +176,140 @@ class Person():
 
 
 class SmartPerson(Person):
-
-	def __init__(self, floormap: np.ndarray, *args, **kwargs):
-		super().__init__(*args, **kwargs)
+	def __init__(self, srcLoc: Location, dstLoc: Location, floormap: np.ndarray, blockedPaths: List[Coord]):
+		super().__init__(srcLoc, dstLoc, smart=True)
 
 		self._floormap = floormap
-		self._prevCoord = None
 		self._blockedCount = 0
-		self._blockedCoords = set()
-		self._blockedCountLim = 10
+		self._blockedCountLim = 3
 
-	def nextCoord(self) -> Coord:
+		blockedCoords = [blockedPath[0] for blockedPath in blockedPaths]
+		self.calculatePath(blockedPaths)
 
-		if self.coord == self.dstLoc.dstCoord:
-			return None
+	def calculatePath(self, blockedPaths: List[Tuple[Coord]]):
+		class Node:
+			def __init__(self, coord: Coord, predecessor: "Node"=None):
+				self.coord = coord
+				self.predecessor = predecessor
 
-		x_lim, y_lim = np.shape(self._floormap)
+			def getNeighbors(self, srcNode: "Node", floormap: np.ndarray, blockedPaths: List[Tuple[Coord]], dstLocID: int):
+				x_lim, y_lim = np.shape(floormap)
 
-		def _is_valid_coord(coord):
-			if coord.x<0 or coord.x >= x_lim or coord.y<0 or coord.y>= y_lim: 
-				return False
-			if self._floormap[coord.x, coord.y] == -1: # -1 is blocked
-				return False
+				def _is_valid_coord(coord: Coord):
+					if coord.x < 0 or coord.x >= x_lim or coord.y < 0 or coord.y >= y_lim: 
+						return False
 
-			currLaneID = Lane.getLaneID(self.coord)
-			currLanePath = Lane.getPath(currLaneID)
-			currIntersectionID = Intersection.getIntersectionId(self.coord)
-			currIntersectionCoords = Intersection.getCoords(currIntersectionID)
-			currEntryLaneIntersection = Intersection.getLaneIntersection(self.coord, isEntry=True)
+					currLaneID = Lane.getLaneID(self.coord)
+					currLanePath = Lane.getPath(currLaneID)
+					currIntersectionID = Intersection.getIntersectionId(self.coord)
+					currIntersectionCoords = Intersection.getCoords(currIntersectionID)
+					currEntryLaneIntersection = Intersection.getLaneIntersection(self.coord, isEntry=True)
 
-			newLaneID = Lane.getLaneID(coord)
-			newIntersectionID = Intersection.getIntersectionId(coord)
-			newExitLaneIntersection = Intersection.getLaneIntersection(coord, isEntry=False)
+					newLaneID = Lane.getLaneID(coord)
+					newIntersectionID = Intersection.getIntersectionId(coord)
+					newExitLaneIntersection = Intersection.getLaneIntersection(coord, isEntry=False)
 
-			# if is on a lane and not at the end of the lane, only allow next coord on lane
-			if currLaneID != -1 and self.coord != currLanePath[-1]:
-				return coord == currLanePath[currLanePath.index(self.coord) + 1]
+					# if is on a lane and not at the end of the lane, only allow next coord on lane
+					if currLaneID != -1 and self.coord != currLanePath[-1]:
+						return coord == currLanePath[currLanePath.index(self.coord) + 1]
 
-			# if is at the end of a lane, allow going into an intersection
-			elif currLaneID != -1 and self.coord == currLanePath[-1]:
-				# The lane intersection are always the unit outside the intersection
-				# while the LED bounds has first element overlapping with the lane intersection coord, and the second element 
-				# inside the intersection
-				if newIntersectionID != -1 and currEntryLaneIntersection is not None:
-					return currEntryLaneIntersection.LED.coordBounds[1] == coord
-				else:
-					return False
+					# if is at the end of a lane, allow going into an intersection
+					elif currLaneID != -1 and self.coord == currLanePath[-1]:
+						# The lane intersection are always the unit outside the intersection
+						# while the LED bounds has first element overlapping with the lane intersection coord, and the second element 
+						# inside the intersection
+						if newIntersectionID != -1 and currEntryLaneIntersection is not None:
+							return (self.coord, coord) == currEntryLaneIntersection.LED.coordBounds
+						else:
+							return False
 
-			else:
-				# if is inside an intersection, allow either move inside the intersection, or go out to a lane
-				if currIntersectionID != -1:
-					if newLaneID != -1 and newExitLaneIntersection is not None:
-						isExit = newExitLaneIntersection.LED.coordBounds[0] == coord
 					else:
-						isExit = False
-					
-					isValidIntersectionCoord = coord in currIntersectionCoords or (newLaneID != -1 and isExit)
-					
-					# if blocked inside intersection, it means the most optimum path would result in deadlock
-					# so we force another path, by saying the blocked coord is invalid
-					if self._blockedCount > self._blockedCountLim:
-						return isValidIntersectionCoord and coord not in self._blockedCoords
+						# if is inside an intersection, allow either move inside the intersection, or go out to a lane
+						if currIntersectionID != -1:
+							if newLaneID != -1 and newExitLaneIntersection is not None:
+								isExit = (coord, self.coord) == newExitLaneIntersection.LED.coordBounds
+							else:
+								isExit = False
+							
+							isValidIntersectionCoord = coord in currIntersectionCoords or isExit
+							return isValidIntersectionCoord
+							
+						else:
+							raise ValueError("Error, curr coord {} is neither on a lane or in an intersection!".format(self.coord))
 
-					return isValidIntersectionCoord
-					
-				else:
-					raise ValueError("Error, curr coord {} is neither on a lane or in an intersection!".format(self.coord))
+	
+				neighborCoords = [Coord(self.coord.x + 1, self.coord.y), Coord(self.coord.x, self.coord.y + 1), 
+							 	  Coord(self.coord.x - 1, self.coord.y), Coord(self.coord.x, self.coord.y - 1)]
 
-			return True
-		
-		neighbors = [Coord(self.coord.x+1, self.coord.y), Coord(self.coord.x, self.coord.y+1), 
-					 Coord(self.coord.x-1, self.coord.y), Coord(self.coord.x, self.coord.y-1)]
+				neighbors = []
+				for neighborCoord in neighborCoords:
+					if _is_valid_coord(neighborCoord):
+						neighbor = Node(neighborCoord, self)
 
-		neighbors = [n for n in neighbors if _is_valid_coord(n)]
+						isValidNeighbor = True
+						inIntersection = Intersection.getIntersectionId(srcNode.coord) != -1
+						pathExitedIntersection = False
+						tempNode = self
+						if inIntersection:
+							if dstLocID != 2 and dstLocID != 6:
+								isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if Intersection.getIntersectionId(srcNode.coord) == Intersection.getIntersectionId(self.coord) else True
+							else:
+								while tempNode is not None:
+									if Intersection.getIntersectionId(tempNode.coord) != Intersection.getIntersectionId(srcNode.coord):
+										pathExitedIntersection = True
+										break
+									tempNode = tempNode.predecessor
 
-		print(self.coord, "->", neighbors)
+								isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if not pathExitedIntersection else True
 
-		if len(neighbors) == 1:
-			return neighbors[0]
-		else:
-			minDist = x_lim + y_lim + 1
-			minNeighbor = None
-			for n in neighbors:
-				dist = abs(n.x-self.dstLoc.dstCoord.x) + abs(n.y-self.dstLoc.dstCoord.y)
-				print(n, "->", dist)
-				if dist < minDist:
-					minDist = dist
-					minNeighbor = n
+						if isValidNeighbor:
+							neighbors.append(neighbor)
 
-			print(minDist, minNeighbor)
+				return neighbors
 
-		return minNeighbor
+		# Do BFS
+		openedList = queue.Queue()
+		closedList = queue.Queue()
 
-	def prevCoord(self) -> Coord:
-		return self._prevCoord
+		srcNode = Node(self.coord)
+		dstNode = Node(self.dstLoc.dstCoord)
 
-	def wait(self):
+		openedList.put(srcNode)
+
+		while not openedList.empty():
+			currNode = openedList.get()
+			closedList.put(currNode)
+
+			if currNode.coord == dstNode.coord:
+				break
+
+			neighbors = currNode.getNeighbors(srcNode, self._floormap, blockedPaths, self.dstLoc.locID)
+			for neighbor in neighbors:
+				# Ignore repeated state transitions
+				if not any((currNode.coord, neighbor.coord) == (node.predecessor.coord, node.coord) for node in list(closedList.queue)[1:] + list(openedList.queue)):
+					openedList.put(neighbor)
+
+		# If new path not found stay with old path
+		if currNode.coord != dstNode.coord:
+			self._blockedCount = 0
+			return
+
+		path = queue.LifoQueue()
+		while currNode is not None:
+			path.put(currNode)
+			currNode = currNode.predecessor
+
+		self.path = [node.coord for node in reversed(path.queue)]
+		self.pathIdx = 0
+
+	def wait(self, blockedPaths: List[Tuple[Coord]]):
 		self._blockedCount += 1
-		self._blockedCoords.add(self.coord)
 
-	def advance(self, nextCoord=None):
-		self._prevCoord = self.coord
-		self.coord = self.nextCoord() if not nextCoord else nextCoord
+		if self._blockedCount > self._blockedCountLim:
+			self.calculatePath(blockedPaths)
+	def advance(self):
 		self._blockedCount = 0
-		self._blockedCoords = set()
-
+		super().advance()
 
 class Lane():
 	lanePaths = [

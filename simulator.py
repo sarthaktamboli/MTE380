@@ -12,7 +12,10 @@ class Simulator:
 		self.mainControllerData = mainControllerData
 		self.simulatorData = simulatorData
 		self.debug = debug
+
 		self.people = []
+		self.peopleEntered = 0
+		self.peopleExited = 0
 
 		# Initialize pygame
 		pygame.init()
@@ -73,24 +76,30 @@ class Simulator:
 					  [(midpoint.x - (self.blockWidth / 2), midpoint.y), (midpoint.x + (self.blockWidth / 2), midpoint.y)]
 		pygame.draw.lines(self.screen, color, False, LEDLocation, self.blockMargin)
 
-	def drawText(self, text: str, size: int, color: Tuple[int], x: int, y: int, bold: bool=False, align: str='center'):
+	def drawText(self, text: str, size: int, color: Tuple[int], x: int, y: int, bold: bool=False, anchor: str='center'):
 		text = pygame.font.SysFont('arial', size, bold=bold).render(text, True, color)
 		rect = text.get_rect()
 		center = self.getPygameCoords(x, y)
-		if align == 'center':
+		if anchor == 'center':
 			rect.center = center
-		elif align == 'left':
+		elif anchor == 'left':
 			rect.center = (center.x + (rect.width / 2), center.y)
-		elif align == 'right':
+		elif anchor == 'right':
 			rect.center = (center.x - (rect.width / 2), center.y)
 		self.screen.blit(text, rect)
 
 	def run(self):
 		while True:
+			skipLoop = True
 			for event in pygame.event.get():  # User did something
 				if event.type == pygame.QUIT:  # If user clicked close
 					pygame.quit()
 					os._exit(1)
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					skipLoop = False
+			if self.debug and skipLoop:
+				continue
+
 
 			# Backend
 			# Enqueue simulator data (list of coordinates)
@@ -105,46 +114,58 @@ class Simulator:
 				if LED.is_on:
 					blockedPaths.append(LED.coordBounds)
 
-			# Each person gets a chance to advance if possible
+			# Each person advances if possible
 			advancedPeople = []
 			for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
 				currCoord = person.coord
 				nextCoord = person.nextCoord()
-				advanced = False
 
 				# Remove person if they have reached their destination, otherwise the person may advance
 				if currCoord == person.dstLoc.dstCoord:
 					self.people.remove(person)
 					del person
-				elif (currCoord, nextCoord) not in blockedPaths and (nextCoord, currCoord) not in blockedPaths:
-					if not any([person.coord == nextCoord for person in self.people]):
-						# 90% chance to advance if possible
-						if np.random.rand() < 0.9:
-							person.advance(nextCoord)
+					self.peopleExited += 1
+				else:
+					intoIntersection = self.emptyFloormap[currCoord.x, currCoord.y] != 4 and self.emptyFloormap[nextCoord.x, nextCoord.y] == 4
+					outOfIntersection = self.emptyFloormap[currCoord.x, currCoord.y] == 4 and self.emptyFloormap[nextCoord.x, nextCoord.y] != 4
+					if intoIntersection:
+						if (currCoord, nextCoord) not in blockedPaths:
+							person.advance()
 							advancedPeople.append(person)
-							advanced = True
-
-				if not advanced:
-					person.wait()
+					elif outOfIntersection:
+						if (nextCoord, currCoord) not in blockedPaths:
+							person.advance()
+							advancedPeople.append(person)
+						else:
+							person.wait(blockedPaths)
+					else:
+						if not any([person.coord == nextCoord for person in self.people]):
+							person.advance()
+							advancedPeople.append(person)
 
 			# TODO: only do this if there is less than a certain number of people?
+			newPeople = []
 			x = len(self.people)
 			# quadratic probability, 1 when x = 0, 0 when x = 40
 			probability = ((x ** 2) / 1600) - (x / 20) + 1
-			if x == 0: #np.random.rand() < probability:
+			if x < 40: #np.random.rand() < probability:
 				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
 				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
 				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
-				if not any([person.coord == Location.getCoords(srcLocID)[0] for person in self.people]):
-					if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in self.people]):
-						if srcLocID != 6 or not any([person.coord == Coord(12, 7) for person in self.people]):
-							newPerson = SmartPerson(self.emptyFloormap, Location(4), Location(3))#Location(srcLocID), Location(dstLocID))
-							self.people.append(newPerson)
-
-			# Shuffle list of people to change order of iteration
-			random.shuffle(self.people)
+				if not any([person.coord == Location.getCoords(srcLocID)[0] for person in (self.people + newPeople)]):
+					if srcLocID != 8 or not any ([person.coord == Coord(18, 8) for person in (self.people + newPeople)]):
+						if srcLocID != 6 or not any([person.coord == Coord(12, 17) for person in (self.people + newPeople)]):
+							newPerson = SmartPerson(Location(srcLocID), Location(dstLocID), self.emptyFloormap, blockedPaths)
+							newPeople.append(newPerson)
+							self.peopleEntered += 1
 
 			if len(advancedPeople) == 0:
+				# Add new people to list of people
+				self.people += newPeople
+
+				# Shuffle list of people to change order of iteration
+				random.shuffle(self.people)
+
 				continue
 
 			# Frontend
@@ -162,14 +183,19 @@ class Simulator:
 					dstCoord = Location.getCoords(i)[1]
 					self.drawText("%d" % i, 15, self.grey, dstCoord.x, dstCoord.y, bold=True)
 
-				# Display people count
-				self.drawText("People Count: %d" % len(self.people), 17, self.white, 0, -1, bold=True, align='left')
+				# Display people statistics
+				if len(self.people) + len(newPeople) != self.peopleEntered - self.peopleExited:
+					raise ValueError("Inconsistency in people statistics")
+				self.drawText("People Count: %d" % (len(self.people) + len(newPeople)), 17, self.white, 0, -1, bold=True, anchor='left')
+				self.drawText("People Entered: %d" % self.peopleEntered, 17, self.white, 9.5, -1, bold=True, anchor='center')
+				self.drawText("People Exited: %d" % self.peopleExited, 17, self.white, 19, -1, bold=True, anchor='right')
 
 				# Draw the LEDs
 				for LED in LEDs:
 					color = self.red if LED.is_on else self.green
 					self.drawLED(color, LED.coordBounds, LED.is_vertical())
 
+				# Draw all previously existing people
 				for person in self.people:
 					if person not in advancedPeople:
 						self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
@@ -180,8 +206,16 @@ class Simulator:
 						currCoordY = oldCoordY + ((newCoordY - oldCoordY) * animationLoop / 20)
 						self.drawPerson(self.grey, currCoordX, currCoordY, person.dstLoc.locID)
 
+				# Draw new people in last iteration
+				if animationLoop == 20:
+					for person in newPeople:
+						self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
+
 				self.clock.tick(40)
 				pygame.display.flip()
 
-			if self.debug:
-				input("Next")
+			# Add new people to list of people
+			self.people += newPeople
+
+			# Shuffle list of people to change order of iteration
+			random.shuffle(self.people)
