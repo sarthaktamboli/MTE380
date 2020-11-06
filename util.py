@@ -248,19 +248,22 @@ class SmartPerson(Person):
 
 						isValidNeighbor = True
 						inIntersection = Intersection.getIntersectionId(srcNode.coord) != -1
-						pathExitedIntersection = False
-						tempNode = self
 						if inIntersection:
 							if dstLocID != 2 and dstLocID != 6:
 								isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if Intersection.getIntersectionId(srcNode.coord) == Intersection.getIntersectionId(self.coord) else True
 							else:
-								while tempNode is not None:
-									if Intersection.getIntersectionId(tempNode.coord) != Intersection.getIntersectionId(srcNode.coord):
-										pathExitedIntersection = True
-										break
-									tempNode = tempNode.predecessor
+								if dstLocID == 2 and Intersection.getIntersectionId(srcNode.coord) == 1 or dstLocID == 6 and Intersection.getIntersectionId(srcNode.coord) == 10:
+									pathExitedIntersection = False
+									tempNode = self
+									while tempNode is not None:
+										if Intersection.getIntersectionId(tempNode.coord) != Intersection.getIntersectionId(srcNode.coord):
+											pathExitedIntersection = True
+											break
+										tempNode = tempNode.predecessor
 
-								isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if not pathExitedIntersection else True
+									isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if not pathExitedIntersection else True
+								else:
+									isValidNeighbor = (neighbor.coord, self.coord) not in blockedPaths if Intersection.getIntersectionId(srcNode.coord) == Intersection.getIntersectionId(self.coord) else True
 
 						if isValidNeighbor:
 							neighbors.append(neighbor)
