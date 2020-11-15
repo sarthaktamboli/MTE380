@@ -1,2 +1,4 @@
 *.log
 __pycache__/
+image_processing/venv
+image_processing/NNs
