@@ -4,6 +4,7 @@ import argparse
 import cv2
 import time
 from imutils.video import VideoStream
+from skimage.transform import ProjectiveTransform
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -11,9 +12,13 @@ ap.add_argument("-p", "--prototxt", required=True,
 	help="path to Caffe 'deploy' prototxt file")
 ap.add_argument("-m", "--model", required=True,
 	help="path to Caffe pre-trained model")
-ap.add_argument("-c", "--confidence", type=float, default=0.2,
+ap.add_argument("-i", "--input", type=str,
+	help="path to optional input video file")
+ap.add_argument("-o", "--output", type=str,
+	help="path to optional output video file")
+ap.add_argument("-c", "--confidence", type=float, default=0,
 	help="minimum probability to filter weak detections")
-ap.add_argument("-s", "--skip-frames", type=int, default=30,
+ap.add_argument("-s", "--skip-frames", type=int, default=1,
 	help="# of skip frames between detections")
 args = vars(ap.parse_args())
 
@@ -23,25 +28,52 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 	"bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
 	"dog", "horse", "motorbike", "person", "pottedplant", "sheep",
 	"sofa", "train", "tvmonitor"]
-COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
-print("[INFO] starting video stream...")
-vs = VideoStream(src=0).start()
-time.sleep(2.0)
-
+# if a video path was not supplied, grab a reference to the webcam
+if not args.get("input", False):
+	print("[INFO] starting video stream...")
+	vs = VideoStream(src=0).start()
+	time.sleep(2.0)
+# otherwise, grab a reference to the video file
+else:
+	print("[INFO] opening video file...")
+	vs = cv2.VideoCapture(args["input"])
 # load our serialized model from disk
+
 print("[INFO] loading model...")
 net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
+
+# initialize the video writer (we'll instantiate later if need be)
+writer = None
+
+src = np.array([[0, 0], [200, 0], [0, 200], [200, 200]])
+dst = np.array([[53, 269], [225, 238], [190, 318], [365, 280]])
+projectiveTransform = ProjectiveTransform()
+projectiveTransform.estimate(src, dst)
 
 totalFrames = 0
 while True:
 	frame = vs.read()
+	frame = frame[1] if args.get("input", False) else frame
+
+	# if we are viewing a video and we did not grab a frame then we have reached the end of the video
+	if args["input"] is not None and frame is None:
+		break
+
 	(h, w) = frame.shape[:2]
+
+	# if we are supposed to be writing a video to disk, initialize the writer
+	if args["output"] is not None and writer is None:
+		fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+		writer = cv2.VideoWriter(args["output"], fourcc, 30, (w, h), True)
 
 	if totalFrames % args["skip_frames"] == 0:
 		blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
 		net.setInput(blob)
+		start = time.time()
 		detections = net.forward()
+		end = time.time()
+		print("[INFO] Forward Propragation: {:.2f}s".format(end - start))
 
 		# loop over the detections
 		for i in np.arange(detections.shape[2]):
@@ -58,14 +90,51 @@ while True:
 				box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
 				(startX, startY, endX, endY) = box.astype("int")
 
-				# display the prediction
-				label = "{}: {:.2f}%".format(CLASSES[idx], confidence * 100)
+				if CLASSES[idx] != "person":
+					continue
+
+				# Projective Transform returns location relative to (5, 11) in layout
+				relativeLoc = tuple(projectiveTransform.inverse(np.array([[(startX + endX) / 2, endY - 0.05 * (endY - startY)]]))[0])
+				absoluteLoc =  (5 + int(relativeLoc[0] // 200), 11 + int(relativeLoc[1] // 200))
+				label = "{}: {:.2f}%, at {}".format(CLASSES[idx], confidence * 100, absoluteLoc)
 				print("[INFO] {}".format(label))
-				cv2.rectangle(frame, (startX, startY), (endX, endY), COLORS[idx], 2)
+				cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 0, 255), 2)
 				y = startY - 15 if startY - 15 > 15 else startY + 15
-				cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
+				cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+
+
+		'''
+		alpha = 0.25
+		overlay = frame.copy()
+
+		cv2.line(overlay, (0, 269), (w, 269), (0, 255, 0), 2)
+		cv2.line(overlay, (53, 0),  (53, h),  (0, 255, 0), 2)
+
+		cv2.line(overlay, (0, 238), (w, 238), (255, 0, 0), 2)
+		cv2.line(overlay, (225, 0), (225, h), (255, 0, 0), 2)
+
+		cv2.line(overlay, (0, 318), (w, 318), (0, 255, 255), 2)
+		cv2.line(overlay, (190, 0), (190, h), (0, 255, 255), 2)
+
+		cv2.line(overlay, (0, 280), (w, 280), (0, 0, 255), 2)
+		cv2.line(overlay, (365, 0), (365, h), (0, 0, 255), 2)
+
+		cv2.addWeighted(overlay, alpha, frame , 1 - alpha, 0, frame)
+		'''
+
+		'''
+		cv2.line(frame, tuple(dst[0]), tuple(dst[1]), (0, 255, 0), 2)		# green
+		cv2.line(frame, tuple(dst[0]), tuple(dst[2]), (255, 0, 0), 2)		# blue
+		cv2.line(frame, tuple(dst[2]), tuple(dst[3]), (0, 0, 255), 2)		# red
+		cv2.line(frame, tuple(dst[1]), tuple(dst[3]), (0, 255, 255), 2)		# yellow
+		'''
 
 		cv2.imshow("Frame", frame)
+
+		# check to see if we should write the frame to disk
+		if writer is not None:
+			writer.write(frame)
 
 	key = cv2.waitKey(1) & 0xFF
 	if key == ord('q'):
@@ -73,5 +142,13 @@ while True:
 
 	totalFrames += 1
 
+# if we are not using a video file, stop the camera video stream
+if not args.get("input", False):
+	vs.stop()
+# otherwise, release the video file pointer
+else:
+	vs.release()
 
-vs.stop()
+# check to see if we need to release the video writer pointer
+if writer is not None:
+	writer.release()
