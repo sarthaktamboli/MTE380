@@ -51,6 +51,8 @@ dst = np.array([[53, 269], [225, 238], [190, 318], [365, 280]])
 projectiveTransform = ProjectiveTransform()
 projectiveTransform.estimate(src, dst)
 
+times = []
+
 totalFrames = 0
 while True:
 	frame = vs.read()
@@ -68,12 +70,12 @@ while True:
 		writer = cv2.VideoWriter(args["output"], fourcc, 30, (w, h), True)
 
 	if totalFrames % args["skip_frames"] == 0:
+		start1 = time.time()
 		blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
 		net.setInput(blob)
-		start = time.time()
+		start2 = time.time()
 		detections = net.forward()
-		end = time.time()
-		print("[INFO] Forward Propragation: {:.2f}s".format(end - start))
+		print("[INFO] Forward Propragation: {:.4f}s".format(time.time() - start2))
 
 		# loop over the detections
 		for i in np.arange(detections.shape[2]):
@@ -102,6 +104,8 @@ while True:
 				y = startY - 15 if startY - 15 > 15 else startY + 15
 				cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
+		times.append(time.time() - start1)
+		print("[INFO] Total detection time: {:.4f}s".format(times[0-1]))
 
 
 		'''
@@ -123,12 +127,12 @@ while True:
 		cv2.addWeighted(overlay, alpha, frame , 1 - alpha, 0, frame)
 		'''
 
-		'''
-		cv2.line(frame, tuple(dst[0]), tuple(dst[1]), (0, 255, 0), 2)		# green
-		cv2.line(frame, tuple(dst[0]), tuple(dst[2]), (255, 0, 0), 2)		# blue
-		cv2.line(frame, tuple(dst[2]), tuple(dst[3]), (0, 0, 255), 2)		# red
-		cv2.line(frame, tuple(dst[1]), tuple(dst[3]), (0, 255, 255), 2)		# yellow
-		'''
+		
+		# cv2.line(frame, tuple(dst[0]), tuple(dst[1]), (0, 255, 0), 2)		# green
+		# cv2.line(frame, tuple(dst[0]), tuple(dst[2]), (255, 0, 0), 2)		# blue
+		# cv2.line(frame, tuple(dst[2]), tuple(dst[3]), (0, 0, 255), 2)		# red
+		# cv2.line(frame, tuple(dst[1]), tuple(dst[3]), (0, 255, 255), 2)		# yellow
+		
 
 		cv2.imshow("Frame", frame)
 
@@ -152,3 +156,12 @@ else:
 # check to see if we need to release the video writer pointer
 if writer is not None:
 	writer.release()
+
+print("[INFO] Average total detection time: {}".format(np.average(times)))
+print("[INFO] Total detection time std. dev: {}".format(np.std(times)))
+
+#0.026670806407928467, 0.005443000949946635 (1.mp4)
+#0.02047379522134137, 0.003309995200970159 (2.mp4)
+#0.020306305544452327, 0.003701451768991102 (3.mp4)
+#0.01973256479601346, 0.0029976137421987466 (4.mp4)
+# average: 0.021795867992433906, 0.0038630154155266604
