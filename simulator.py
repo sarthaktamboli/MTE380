@@ -7,10 +7,11 @@ import pygame
 import os
 
 class Simulator:
-	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue, debug: Optional[bool] = False):
+	def __init__(self, floormap: np.ndarray, mainControllerData: Queue, simulatorData: Queue, travelTimeData: Queue, debug: Optional[bool] = False):
 		self.emptyFloormap = floormap.copy()
 		self.mainControllerData = mainControllerData
 		self.simulatorData = simulatorData
+		self.travelTimeData = travelTimeData
 		self.debug = debug
 
 		self.people = []
@@ -88,8 +89,18 @@ class Simulator:
 			rect.center = (center.x - (rect.width / 2), center.y)
 		self.screen.blit(text, rect)
 
-	def run(self):
-		while True:
+	def averageResults(self, results: dict):
+		for key, value in results.items():
+			results[key] = sum(value)/len(value)
+		return results
+
+	def run(self, maxPeople):
+		iteration = 0
+		results = dict()
+		self.people = []
+		self.peopleEntered = 0
+		self.peopleExited = 0
+		while iteration < 1000: # change to 1000 iteration
 			skipLoop = True
 			for event in pygame.event.get():  # User did something
 				if event.type == pygame.QUIT:  # If user clicked close
@@ -117,11 +128,16 @@ class Simulator:
 			# Each person advances if possible
 			advancedPeople = []
 			for person in reversed(self.people):	# Note: Iteration is in reverse since a person can be removed during an iteration
+				person.iterations += 1
 				currCoord = person.coord
 				nextCoord = person.nextCoord()
 
 				# Remove person if they have reached their destination, otherwise the person may advance
 				if currCoord == person.dstLoc.dstCoord:
+					if (person.srcLoc.srcCoord, person.dstLoc.dstCoord) in results:
+						results[(person.srcLoc.srcCoord, person.dstLoc.dstCoord)].append(person.iterations)
+					else:
+						results[(person.srcLoc.srcCoord, person.dstLoc.dstCoord)] = [person.iterations]
 					self.people.remove(person)
 					del person
 					self.peopleExited += 1
@@ -148,7 +164,7 @@ class Simulator:
 			x = len(self.people)
 			# quadratic probability, 1 when x = 0, 0 when x = 40
 			probability = ((x ** 2) / 1600) - (x / 20) + 1
-			if x < 40: #np.random.rand() < probability:
+			if x < maxPeople: #np.random.rand() < probability:
 				# Generate random srcLoc and dstLoc, making sure that there is currently nobody at that srcLoc
 				srcLocID = random.choice([1, 2, 3, 4, 5, 6, 8])
 				dstLocID = random.choice([1, 2, 3, 4, 5, 6, 7, 8]) if srcLocID != 8 else random.choice([1, 2, 3, 4, 5, 6, 7])
@@ -211,7 +227,7 @@ class Simulator:
 					for person in newPeople:
 						self.drawPerson(self.grey, person.coord.x, person.coord.y, person.dstLoc.locID)
 
-				self.clock.tick(40)
+				self.clock.tick(100) # change 40 to 1
 				pygame.display.flip()
 
 			# Add new people to list of people
@@ -219,3 +235,7 @@ class Simulator:
 
 			# Shuffle list of people to change order of iteration
 			random.shuffle(self.people)
+
+			iteration += 1
+
+		self.travelTimeData.put(self.averageResults(results))
