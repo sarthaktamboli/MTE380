@@ -2,5 +2,6 @@
 __pycache__/
 image_processing/venv
 image_processing/cv2_gpu_venv
+image_processing/venv-submission
 image_processing/NNs
 test.py
