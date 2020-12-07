@@ -1,2 +1,6 @@
 *.log
 __pycache__/
+image_processing/venv
+image_processing/cv2_gpu_venv
+image_processing/NNs
+test.py
