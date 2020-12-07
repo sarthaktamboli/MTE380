@@ -108,6 +108,7 @@ class Person():
 
 		self.path = self.getPath()
 		self.pathIdx = 0
+		self.iterations = 0
 
 	def getPath(self) -> List["Coord"]:
 		personPath = self.personPaths[(self.srcLoc.locID, self.dstLoc.locID)]
@@ -196,7 +197,7 @@ class SmartPerson(Person):
 				x_lim, y_lim = np.shape(floormap)
 
 				def _is_valid_coord(coord: Coord):
-					if coord.x < 0 or coord.x >= x_lim or coord.y < 0 or coord.y >= y_lim: 
+					if coord.x < 0 or coord.x >= x_lim or coord.y < 0 or coord.y >= y_lim:
 						return False
 
 					currLaneID = Lane.getLaneID(self.coord)
@@ -216,7 +217,7 @@ class SmartPerson(Person):
 					# if is at the end of a lane, allow going into an intersection
 					elif currLaneID != -1 and self.coord == currLanePath[-1]:
 						# The lane intersection are always the unit outside the intersection
-						# while the LED bounds has first element overlapping with the lane intersection coord, and the second element 
+						# while the LED bounds has first element overlapping with the lane intersection coord, and the second element
 						# inside the intersection
 						if newIntersectionID != -1 and currEntryLaneIntersection is not None:
 							return (self.coord, coord) == currEntryLaneIntersection.LED.coordBounds
@@ -230,15 +231,15 @@ class SmartPerson(Person):
 								isExit = (coord, self.coord) == newExitLaneIntersection.LED.coordBounds
 							else:
 								isExit = False
-							
+
 							isValidIntersectionCoord = coord in currIntersectionCoords or isExit
 							return isValidIntersectionCoord
-							
+
 						else:
 							raise ValueError("Error, curr coord {} is neither on a lane or in an intersection!".format(self.coord))
 
-	
-				neighborCoords = [Coord(self.coord.x + 1, self.coord.y), Coord(self.coord.x, self.coord.y + 1), 
+
+				neighborCoords = [Coord(self.coord.x + 1, self.coord.y), Coord(self.coord.x, self.coord.y + 1),
 							 	  Coord(self.coord.x - 1, self.coord.y), Coord(self.coord.x, self.coord.y - 1)]
 
 				neighbors = []
@@ -545,7 +546,7 @@ class Intersection():
 		#intersection 0
 		([LaneIntersection(Coord(4, 3), LED((Coord(4, 3), Coord(5, 3))), Lane(0)), LaneIntersection(Coord(6, 2), LED((Coord(6, 2), Coord(5, 2))), Lane(12))],
 		 [LaneIntersection(Coord(4, 2), LED((Coord(4, 2), Coord(5, 2))), Lane(1)), LaneIntersection(Coord(5, 4), LED((Coord(5, 4), Coord(5, 3))), Lane(11))]),
-		
+
 		#intersection 1
 		([LaneIntersection(Coord(8, 1), LED((Coord(8, 1), Coord(8, 2))), Lane(2)), LaneIntersection(Coord(9, 2), LED((Coord(9, 2), Coord(8, 2))), Lane(13)), LaneIntersection(Coord(8, 4), LED((Coord(8, 4), Coord(8, 3))), Lane(22))],
 		 [LaneIntersection(Coord(7, 2), LED((Coord(7, 2), Coord(8, 2))), Lane(12)), LaneIntersection(Coord(9, 3), LED((Coord(9, 3), Coord(8, 3))), Lane(23))]),
