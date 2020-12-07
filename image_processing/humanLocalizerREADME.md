@@ -1,3 +1,7 @@
+This is for the humanLocalizer, not the objectDetector.  
+humanLocalizer uses tensorflow, and is somehow slower, so it is not used.  
+It is still kept in the repo for documentation purposes.  
+
 Clone including submodule (we need the tensorflow object detection API, which is contained in the tensorflow/models repo):  
 `git submodule update --init --recursive`  
   
