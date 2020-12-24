@@ -1,0 +1,3 @@
+[submodule "image_processing/models"]
+	path = image_processing/models
+	url = https://github.com/tensorflow/models
